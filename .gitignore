@@ -1,0 +1,10 @@
+# Build outputs
+obj/
+lib/
+
+# OpenChrome local data
+.openchrome/
+
+# Claude Code
+.claude/
+CLAUDE.md
