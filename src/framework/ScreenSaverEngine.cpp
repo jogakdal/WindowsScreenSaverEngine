@@ -13,6 +13,7 @@
 #include <shellapi.h>
 #include <shlwapi.h>
 #include <commctrl.h>
+#include <tlhelp32.h>
 #include <cwchar>
 #include <new>
 
@@ -271,7 +272,47 @@ int ScreenSaverEngine::ElevateIfNeeded(const wchar_t* args) {
 
 // ---- 설치 ----
 
+// 기존 프로세스 종료 (설정 창 등이 파일을 잠그는 것 방지)
+// scrName: "FractalSaver.scr" -> "FractalSaver.scr"과 "FractalSaver.exe" 모두 종료
+static void KillRunningScr(const wchar_t* scrName) {
+    if (!scrName) return;
+
+    // 확장자를 .exe로 바꾼 이름도 생성
+    wchar_t exeName[MAX_PATH];
+    wcscpy_s(exeName, scrName);
+    wchar_t* dot = wcsrchr(exeName, L'.');
+    if (dot)
+        wcscpy_s(dot, exeName + MAX_PATH - dot, L".exe");
+
+    HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (snap == INVALID_HANDLE_VALUE) return;
+
+    PROCESSENTRY32W pe{};
+    pe.dwSize = sizeof(pe);
+    DWORD selfPid = GetCurrentProcessId();
+
+    if (Process32FirstW(snap, &pe)) {
+        do {
+            if (pe.th32ProcessID != selfPid &&
+                (_wcsicmp(pe.szExeFile, scrName) == 0 ||
+                 _wcsicmp(pe.szExeFile, exeName) == 0)) {
+                HANDLE hp = OpenProcess(PROCESS_TERMINATE, FALSE, pe.th32ProcessID);
+                if (hp) {
+                    TerminateProcess(hp, 0);
+                    CloseHandle(hp);
+                }
+            }
+        } while (Process32NextW(snap, &pe));
+    }
+    CloseHandle(snap);
+}
+
 int ScreenSaverEngine::DoInstall() {
+    // 기존 .scr 프로세스 종료 (파일 잠금 해제)
+    KillRunningScr(desc_.scrName);
+    if (desc_.otherScrName)
+        KillRunningScr(desc_.otherScrName);
+
     wchar_t selfPath[MAX_PATH];
     GetModuleFileNameW(nullptr, selfPath, MAX_PATH);
 
