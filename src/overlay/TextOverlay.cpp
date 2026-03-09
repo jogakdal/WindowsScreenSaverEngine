@@ -16,20 +16,39 @@ constexpr int    kMarginLeft = 10;           // 좌측 여백
 constexpr int    kMarginTop = 8;             // 상단 여백
 constexpr int    kMarginRight = 20;          // 바운스 우측 여백
 constexpr int    kLineSpacing = 3;           // 줄 간격 추가분
-constexpr int    kOutlineThickness = 2;      // 텍스트 외곽선 두께 (px)
-constexpr int    kAlpha = 38;               // 불투명도 ~15% (시계와 동일)
+constexpr int    kOuterOutline = 3;          // 외곽 외곽선 두께 (px, 밝은색)
+constexpr int    kInnerOutline = 1;          // 내곽 외곽선 두께 (px, 어두운색)
+constexpr int    kFillBright = 160;          // 채움 밝기 (0=검정, 255=흰색)
 constexpr int    kMaxCharsEstimate = 80;     // 동적 라인 최대 문자 수 추정치
 constexpr double kBounceSpeed = 0.01;        // 코사인파 속도 (~10분 주기)
 
-// 외곽선 텍스트 렌더링 (검은 외곽선 + 컬러 채움)
+// 이중 외곽선 텍스트 렌더링 (밝은 외곽 + 어두운 내곽 + 채움)
+// 어두운 배경: 밝은 외곽선이 대비 제공
+// 밝은 배경: 어두운 내곽선이 대비 제공
 static void DrawOutlinedText(HDC hdc, int x, int y, const wchar_t* text, int len,
                              COLORREF fillColor) {
     SetBkMode(hdc, TRANSPARENT);
+
+    // 1) 밝은 외곽 (어두운 배경용)
+    int outerBright = 50;
+    SetTextColor(hdc, RGB(outerBright, outerBright, outerBright));
+    for (int dy = -kOuterOutline; dy <= kOuterOutline; dy++) {
+        for (int dx = -kOuterOutline; dx <= kOuterOutline; dx++) {
+            if (dx * dx + dy * dy > kInnerOutline * kInnerOutline)
+                TextOutW(hdc, x + dx, y + dy, text, len);
+        }
+    }
+
+    // 2) 어두운 내곽 (밝은 배경용)
     SetTextColor(hdc, RGB(0, 0, 0));
-    for (int dy = -kOutlineThickness; dy <= kOutlineThickness; dy++)
-        for (int dx = -kOutlineThickness; dx <= kOutlineThickness; dx++)
+    for (int dy = -kInnerOutline; dy <= kInnerOutline; dy++) {
+        for (int dx = -kInnerOutline; dx <= kInnerOutline; dx++) {
             if (dx != 0 || dy != 0)
                 TextOutW(hdc, x + dx, y + dy, text, len);
+        }
+    }
+
+    // 3) 채움
     SetTextColor(hdc, fillColor);
     TextOutW(hdc, x, y, text, len);
 }
@@ -86,10 +105,10 @@ void TextOverlay::Render(HDC surfDC, float fadeAlpha, const wchar_t* dynamicLine
     double t = (1.0 - std::cos(elapsed * kBounceSpeed)) * 0.5;
     int ox = kMarginLeft + static_cast<int>(t * overlayRange_);
 
-    // 페이드 알파에 따른 텍스트 색상 (시계와 동일한 밝기)
-    int alpha = static_cast<int>(fadeAlpha * kAlpha);
-    alpha = (std::min)(255, (std::max)(0, alpha));
-    COLORREF textColor = RGB(alpha, alpha, alpha);
+    // 페이드 알파에 따른 텍스트 채움 밝기
+    int bright = static_cast<int>(fadeAlpha * kFillBright);
+    bright = (std::min)(255, (std::max)(0, bright));
+    COLORREF textColor = RGB(bright, bright, bright);
 
     HFONT oldFont = static_cast<HFONT>(SelectObject(surfDC, font_));
     int y = kMarginTop;
@@ -129,9 +148,9 @@ void TextOverlay::RenderHelpLine(HDC surfDC, float fadeAlpha) {
     double t = (1.0 - std::cos(elapsed * kBounceSpeed)) * 0.5;
     int ox = kMarginLeft + static_cast<int>(t * overlayRange_);
 
-    int alpha = static_cast<int>(fadeAlpha * kAlpha);
-    alpha = (std::min)(255, (std::max)(0, alpha));
-    COLORREF textColor = RGB(alpha, alpha, alpha);
+    int bright = static_cast<int>(fadeAlpha * kFillBright);
+    bright = (std::min)(255, (std::max)(0, bright));
+    COLORREF textColor = RGB(bright, bright, bright);
 
     HFONT oldFont = static_cast<HFONT>(SelectObject(surfDC, font_));
 

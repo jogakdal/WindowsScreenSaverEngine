@@ -1,6 +1,5 @@
 #include "framework/ScreenSaverWindow.h"
 #include <windowsx.h>
-#include <algorithm>
 
 namespace wsse {
 

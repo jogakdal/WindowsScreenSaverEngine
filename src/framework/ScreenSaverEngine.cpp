@@ -13,11 +13,8 @@
 #include <shellapi.h>
 #include <shlwapi.h>
 #include <commctrl.h>
-#include <cmath>
 #include <cwchar>
-#include <cctype>
 #include <new>
-#include <algorithm>
 
 #pragma comment(lib, "shlwapi.lib")
 #pragma comment(lib, "version.lib")
