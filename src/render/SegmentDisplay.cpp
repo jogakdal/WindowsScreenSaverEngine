@@ -79,7 +79,7 @@ static void DrawColon(HDC hdc, int cx, int y, int h, int dotR) {
 
 void Draw7SegClock(HDC hdc, int bmpW, int bmpH,
                    const SegmentDisplayConfig& cfg,
-                   int hour, int minute) {
+                   int hour, int minute, bool colonOn) {
     int dw = cfg.digitW;
     int dh = cfg.digitH;
     int thick = cfg.segThick;
@@ -119,7 +119,8 @@ void Draw7SegClock(HDC hdc, int bmpW, int bmpH,
     x += dw + spacing;
     DrawDigit(hdc, x, sy, dw, dh, thick, gap, hour % 10);
     x += dw + spacing;
-    DrawColon(hdc, x + colW / 2, sy, dh, thick / 2);
+    if (colonOn)
+        DrawColon(hdc, x + colW / 2, sy, dh, thick / 2);
     x += colW + spacing;
     DrawDigit(hdc, x, sy, dw, dh, thick, gap, minute / 10);
     x += dw + spacing;

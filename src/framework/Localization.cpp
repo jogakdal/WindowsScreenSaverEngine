@@ -43,6 +43,7 @@ static const wchar_t* const table[kLangCount][kStrCount] = {
     L"Display",
     L"Show overlay (zoom / FPS)",
     L"Show clock",
+    L"Show animation",
     L"Update",
     L"Check for updates",
     L"OK",
@@ -56,7 +57,7 @@ static const wchar_t* const table[kLangCount][kStrCount] = {
     L"Update check failed.",
 
     // Overlay
-    L"Press F1 for settings",
+    L"F1: Settings",
 
     // System info
     L"Unknown CPU",
@@ -93,6 +94,7 @@ static const wchar_t* const table[kLangCount][kStrCount] = {
     L"\xB514\xC2A4\xD50C\xB808\xC774",
     L"\xC624\xBC84\xB808\xC774 \xD45C\xC2DC (\xC90C / FPS)",
     L"\xC2DC\xACC4 \xD45C\xC2DC",
+    L"\xC560\xB2C8\xBA54\xC774\xC158 \xD45C\xC2DC",
     L"\xC5C5\xB370\xC774\xD2B8",
     L"\xC5C5\xB370\xC774\xD2B8 \xD655\xC778",
     L"\xD655\xC778",
@@ -106,7 +108,7 @@ static const wchar_t* const table[kLangCount][kStrCount] = {
     L"\xC5C5\xB370\xC774\xD2B8 \xD655\xC778 \xC2E4\xD328.",
 
     // Overlay
-    L"F1 \xD0A4\xB97C \xB204\xB974\xBA74 \xC124\xC815",
+    L"F1: \xC124\xC815\xCC3D",
 
     // System
     L"\xC54C \xC218 \xC5C6\xB294 CPU",
@@ -143,6 +145,7 @@ static const wchar_t* const table[kLangCount][kStrCount] = {
     L"\u8868\u793A",
     L"\u30AA\u30FC\u30D0\u30FC\u30EC\u30A4\u8868\u793A (\u30BA\u30FC\u30E0 / FPS)",
     L"\u6642\u8A08\u8868\u793A",
+    L"\u30A2\u30CB\u30E1\u30FC\u30B7\u30E7\u30F3\u8868\u793A",
     L"\u30A2\u30C3\u30D7\u30C7\u30FC\u30C8",
     L"\u30A2\u30C3\u30D7\u30C7\u30FC\u30C8\u78BA\u8A8D",
     L"OK",
@@ -156,7 +159,7 @@ static const wchar_t* const table[kLangCount][kStrCount] = {
     L"\u30A2\u30C3\u30D7\u30C7\u30FC\u30C8\u78BA\u8A8D\u306B\u5931\u6557\u3057\u307E\u3057\u305F\u3002",
 
     // Overlay
-    L"F1\u30AD\u30FC\u3067\u8A2D\u5B9A",
+    L"F1: \u8A2D\u5B9A",
 
     // System
     L"\u4E0D\u660E\u306ACPU",
@@ -193,6 +196,7 @@ static const wchar_t* const table[kLangCount][kStrCount] = {
     L"\u663E\u793A",
     L"\u663E\u793A\u53E0\u52A0\u4FE1\u606F (\u7F29\u653E / FPS)",
     L"\u663E\u793A\u65F6\u949F",
+    L"\u663E\u793A\u52A8\u753B",
     L"\u66F4\u65B0",
     L"\u68C0\u67E5\u66F4\u65B0",
     L"\u786E\u5B9A",
@@ -206,7 +210,7 @@ static const wchar_t* const table[kLangCount][kStrCount] = {
     L"\u66F4\u65B0\u68C0\u67E5\u5931\u8D25\u3002",
 
     // Overlay
-    L"\u6309 F1 \u6253\u5F00\u8BBE\u7F6E",
+    L"F1: \u8BBE\u7F6E",
 
     // System
     L"\u672A\u77E5 CPU",
@@ -243,6 +247,7 @@ static const wchar_t* const table[kLangCount][kStrCount] = {
     L"Anzeige",
     L"Overlay anzeigen (Zoom / FPS)",
     L"Uhr anzeigen",
+    L"Animation anzeigen",
     L"Update",
     L"Nach Updates suchen",
     L"OK",
@@ -256,7 +261,7 @@ static const wchar_t* const table[kLangCount][kStrCount] = {
     L"Update-Pr\u00FCfung fehlgeschlagen.",
 
     // Overlay
-    L"F1 f\u00FCr Einstellungen",
+    L"F1: Einstellungen",
 
     // System
     L"Unbekannte CPU",
@@ -293,6 +298,7 @@ static const wchar_t* const table[kLangCount][kStrCount] = {
     L"Affichage",
     L"Afficher l'overlay (zoom / FPS)",
     L"Afficher l'horloge",
+    L"Afficher l'animation",
     L"Mise \u00E0 jour",
     L"V\u00E9rifier les mises \u00E0 jour",
     L"OK",
@@ -306,7 +312,7 @@ static const wchar_t* const table[kLangCount][kStrCount] = {
     L"\u00C9chec de la v\u00E9rification.",
 
     // Overlay
-    L"F1 pour les param\u00E8tres",
+    L"F1: Param\u00E8tres",
 
     // System
     L"CPU inconnu",
@@ -343,6 +349,7 @@ static const wchar_t* const table[kLangCount][kStrCount] = {
     L"Pantalla",
     L"Mostrar overlay (zoom / FPS)",
     L"Mostrar reloj",
+    L"Mostrar animaci\u00F3n",
     L"Actualizaci\u00F3n",
     L"Buscar actualizaciones",
     L"Aceptar",
@@ -356,7 +363,7 @@ static const wchar_t* const table[kLangCount][kStrCount] = {
     L"Error al buscar actualizaciones.",
 
     // Overlay
-    L"F1 para configuraci\u00F3n",
+    L"F1: Configuraci\u00F3n",
 
     // System
     L"CPU desconocida",

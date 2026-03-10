@@ -15,6 +15,19 @@ RenderSurface::~RenderSurface() {
 }
 
 bool RenderSurface::Create(int width, int height) {
+    // 이전 리소스 해제 (재호출 안전)
+    if (memDC_) {
+        if (oldBitmap_) SelectObject(memDC_, oldBitmap_);
+        DeleteDC(memDC_);
+        memDC_ = nullptr;
+        oldBitmap_ = nullptr;
+    }
+    if (bitmap_) {
+        DeleteObject(bitmap_);
+        bitmap_ = nullptr;
+    }
+    pixels_ = nullptr;
+
     width_ = width;
     height_ = height;
 

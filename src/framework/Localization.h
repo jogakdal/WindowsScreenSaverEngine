@@ -37,6 +37,7 @@ enum class Str {
     GrpDisplay,
     ChkOverlay,
     ChkClock,
+    ChkContent,
     GrpUpdate,
     BtnCheckUpdate,
     BtnOK,

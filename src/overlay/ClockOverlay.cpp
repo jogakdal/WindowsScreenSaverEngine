@@ -57,23 +57,24 @@ void ClockOverlay::Init(int renderW, int renderH) {
     SelectObject(clockDC_, GetStockObject(WHITE_BRUSH));
     SelectObject(clockDC_, GetStockObject(WHITE_PEN));
 
-    // 바운스 초기 위치 (화면 중앙) + 랜덤 방향
+    // 바운스 초기 위치 (화면 중앙) + 사선 방향 (45/135/225/315도)
     posX_ = (renderW - clockW_) / 2.0;
     posY_ = (renderH - clockH_) / 2.0;
     QueryPerformanceCounter(&lastBounceTime_);
-    double angle = (lastBounceTime_.QuadPart % 10000) / 10000.0 * 2.0 * 3.14159265358979;
-    double speed = renderH * kBounceRate;
-    velX_ = speed * std::cos(angle);
-    velY_ = speed * std::sin(angle);
+    double diagSpeed = renderH * kBounceRate * 0.70710678118;
+    int bits = static_cast<int>(lastBounceTime_.QuadPart % 4);
+    velX_ = (bits & 1) ? diagSpeed : -diagSpeed;
+    velY_ = (bits & 2) ? diagSpeed : -diagSpeed;
 }
 
 void ClockOverlay::Render(HDC surfDC, int renderW, int renderH) {
     if (!clockBits_) return;
 
-    // 시각 확인 (분 단위 변경 시만 비트맵 재생성)
+    // 시각 + 콜론 상태 확인 (변경 시만 비트맵 재생성)
     SYSTEMTIME st;
     GetLocalTime(&st);
-    int curTime = st.wHour * 60 + st.wMinute;
+    bool colonOn = st.wMilliseconds < 500;
+    int curTime = (st.wHour * 60 + st.wMinute) * 2 + (colonOn ? 1 : 0);
 
     if (curTime != lastClockTime_) {
         lastClockTime_ = curTime;
@@ -83,7 +84,7 @@ void ClockOverlay::Render(HDC surfDC, int renderW, int renderH) {
             digitW_, digitH_, segThick_, segGap_,
             digitSpacing_, colonW_, kDimBrightness
         };
-        Draw7SegClock(clockDC_, clockW_, clockH_, segCfg, st.wHour, st.wMinute);
+        Draw7SegClock(clockDC_, clockW_, clockH_, segCfg, st.wHour, st.wMinute, colonOn);
 
         // 사전 곱셈 알파 (premultiplied alpha) 적용
         int totalPixels = clockW_ * clockH_;

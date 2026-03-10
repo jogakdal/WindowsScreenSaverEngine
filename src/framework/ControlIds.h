@@ -15,6 +15,7 @@
 
 // 디스플레이 그룹
 #define IDC_GRP_DISPLAY     1022
+#define IDC_SHOW_CONTENT    1013
 #define IDC_SHOW_OVERLAY    1008
 #define IDC_SHOW_CLOCK      1009
 

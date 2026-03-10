@@ -71,12 +71,14 @@ void Registry::WriteInt(const wchar_t* name, int val) {
 
 void Registry::LoadFrameworkSettings(FrameworkSettings& settings) {
     settings.forceCPU = ReadBool(L"ForceCPU", false);
+    settings.showContent = ReadBool(L"ShowContent", true);
     settings.showOverlay = ReadBool(L"ShowOverlay", true);
     settings.showClock = ReadBool(L"ShowClock", true);
 }
 
 void Registry::SaveFrameworkSettings(const FrameworkSettings& settings) {
     WriteBool(L"ForceCPU", settings.forceCPU);
+    WriteBool(L"ShowContent", settings.showContent);
     WriteBool(L"ShowOverlay", settings.showOverlay);
     WriteBool(L"ShowClock", settings.showClock);
 }

@@ -15,8 +15,9 @@ struct SegmentDisplayConfig {
 };
 
 // 7-세그먼트 시계 (HH:MM) 그리기 -- 비트맵 영역 중앙 정렬
+// colonOn: false이면 콜론을 dim 상태로만 표시 (깜빡임용)
 void Draw7SegClock(HDC hdc, int bmpW, int bmpH,
                    const SegmentDisplayConfig& cfg,
-                   int hour, int minute);
+                   int hour, int minute, bool colonOn = true);
 
 } // namespace wsse

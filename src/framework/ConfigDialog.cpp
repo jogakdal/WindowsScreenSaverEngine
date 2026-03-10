@@ -51,6 +51,7 @@ INT_PTR CALLBACK ConfigDialog::DlgProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
         SetDlgItemTextW(hwnd, IDC_GRP_RENDERING, TR(Str::GrpRendering));
         SetDlgItemTextW(hwnd, IDC_FORCE_CPU, TR(Str::ChkForceCPU));
         SetDlgItemTextW(hwnd, IDC_GRP_DISPLAY, TR(Str::GrpDisplay));
+        SetDlgItemTextW(hwnd, IDC_SHOW_CONTENT, TR(Str::ChkContent));
         SetDlgItemTextW(hwnd, IDC_SHOW_OVERLAY, TR(Str::ChkOverlay));
         SetDlgItemTextW(hwnd, IDC_SHOW_CLOCK, TR(Str::ChkClock));
         SetDlgItemTextW(hwnd, IDC_GRP_UPDATE, TR(Str::GrpUpdate));
@@ -85,6 +86,7 @@ INT_PTR CALLBACK ConfigDialog::DlgProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
 
         // 프레임워크 설정 컨트롤 초기화
         CheckDlgButton(hwnd, IDC_FORCE_CPU, s_settings->forceCPU ? BST_CHECKED : BST_UNCHECKED);
+        CheckDlgButton(hwnd, IDC_SHOW_CONTENT, s_settings->showContent ? BST_CHECKED : BST_UNCHECKED);
         CheckDlgButton(hwnd, IDC_SHOW_OVERLAY, s_settings->showOverlay ? BST_CHECKED : BST_UNCHECKED);
         CheckDlgButton(hwnd, IDC_SHOW_CLOCK, s_settings->showClock ? BST_CHECKED : BST_UNCHECKED);
 
@@ -163,6 +165,7 @@ INT_PTR CALLBACK ConfigDialog::DlgProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
         case IDOK: {
             // 프레임워크 설정 읽기
             s_settings->forceCPU = IsDlgButtonChecked(hwnd, IDC_FORCE_CPU) == BST_CHECKED;
+            s_settings->showContent = IsDlgButtonChecked(hwnd, IDC_SHOW_CONTENT) == BST_CHECKED;
             if (s_desc->hasOverlay)
                 s_settings->showOverlay = IsDlgButtonChecked(hwnd, IDC_SHOW_OVERLAY) == BST_CHECKED;
             if (s_desc->hasClock)

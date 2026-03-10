@@ -685,6 +685,7 @@ int ScreenSaverEngine::RunScreenSaver(HINSTANCE hInst, const ScreenshotConfig* s
 
     content_->Init(renderW, renderH, settings_.forceCPU);
 
+    bool showContent = settings_.showContent;
     bool showOverlay = desc_.hasOverlay && settings_.showOverlay;
     bool showClock = desc_.hasClock && settings_.showClock;
 
@@ -722,6 +723,12 @@ int ScreenSaverEngine::RunScreenSaver(HINSTANCE hInst, const ScreenshotConfig* s
     window.SetRenderCallback([&](HDC hdc, int w, int h) {
         HDC surfDC = content_->GetSurfaceDC();
 
+        // 콘텐츠 비활성 시 검은 배경으로 클리어
+        if (!showContent) {
+            RECT r = {0, 0, renderW, renderH};
+            FillRect(surfDC, &r, static_cast<HBRUSH>(GetStockObject(BLACK_BRUSH)));
+        }
+
         // 보조 모니터에 먼저 복사 (오버레이/시계 없는 순수 프랙탈)
         window.UpdateMirrorWindows(surfDC, renderW, renderH);
 
@@ -740,10 +747,16 @@ int ScreenSaverEngine::RunScreenSaver(HINSTANCE hInst, const ScreenshotConfig* s
     });
 
     // 첫 렌더 시작
-    content_->Update(0.0);
-    content_->BeginRender();
-    bool renderInProgress = true;
-    float renderStartFade = content_->GetFadeAlpha();
+    bool renderInProgress = false;
+    float renderStartFade = 0.0f;
+    if (showContent) {
+        content_->Update(0.0);
+        content_->BeginRender();
+        renderInProgress = true;
+        renderStartFade = content_->GetFadeAlpha();
+    } else {
+        window.RequestRedraw();
+    }
 
     LARGE_INTEGER freq, prevTime, currTime;
     QueryPerformanceFrequency(&freq);
@@ -827,15 +840,20 @@ int ScreenSaverEngine::RunScreenSaver(HINSTANCE hInst, const ScreenshotConfig* s
                         hasPrevFrame = false;
                     }
                 }
+                showContent = settings_.showContent;
                 showOverlay = desc_.hasOverlay && settings_.showOverlay;
                 showClock = desc_.hasClock && settings_.showClock;
             }
 
             window.ClearConfigRequest();
 
-            content_->BeginRender();
-            renderInProgress = true;
-            renderStartFade = content_->GetFadeAlpha();
+            if (showContent) {
+                content_->BeginRender();
+                renderInProgress = true;
+                renderStartFade = content_->GetFadeAlpha();
+            } else {
+                window.RequestRedraw();
+            }
             QueryPerformanceCounter(&prevTime);
         }
 
@@ -844,6 +862,25 @@ int ScreenSaverEngine::RunScreenSaver(HINSTANCE hInst, const ScreenshotConfig* s
         double dt = static_cast<double>(currTime.QuadPart - prevTime.QuadPart) / freq.QuadPart;
         prevTime = currTime;
         if (dt > kMaxDtScreenSaver) dt = kMaxDtScreenSaver;
+
+        // 콘텐츠 비활성 시 시계/오버레이만 갱신
+        if (!showContent) {
+            if (renderInProgress) {
+                if (content_->IsRendering()) {
+                    while (!content_->IsRenderComplete())
+                        Sleep(1);
+                    content_->FinalizeRender();
+                }
+                renderInProgress = false;
+            }
+            if (showClock) {
+                window.RequestRedraw();
+                Sleep(33);
+            } else {
+                Sleep(100);
+            }
+            continue;
+        }
 
         // 렌더 완료 확인
         if (renderInProgress && content_->IsRenderComplete()) {
