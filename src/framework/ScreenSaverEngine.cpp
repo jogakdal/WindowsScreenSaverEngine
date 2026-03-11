@@ -37,6 +37,13 @@ constexpr int    kDefaultPreviewH = 112;
 static constexpr const wchar_t* kDesktopRegPath = L"Control Panel\\Desktop";
 static constexpr const wchar_t* kScrRegKey = L"SCRNSAVE.EXE";
 
+// UAC 권한 상승 후 포그라운드 잠금을 우회하여 MessageBox를 앞으로 표시
+static int ForegroundMessageBox(const wchar_t* text, const wchar_t* caption, UINT type) {
+    keybd_event(VK_MENU, 0, 0, 0);
+    keybd_event(VK_MENU, 0, KEYEVENTF_KEYUP, 0);
+    return MessageBoxW(nullptr, text, caption, type | MB_TOPMOST | MB_SETFOREGROUND);
+}
+
 // ---- 생성/소멸 ----
 
 ScreenSaverEngine::ScreenSaverEngine(const AppDescriptor& desc,
@@ -265,7 +272,7 @@ bool ScreenSaverEngine::RelaunchElevated(const wchar_t* args) {
 int ScreenSaverEngine::ElevateIfNeeded(const wchar_t* args) {
     if (IsElevated()) return -1;
     if (RelaunchElevated(args)) return 0;
-    MessageBoxW(nullptr, TR(Str::AdminRequired),
+    ForegroundMessageBox(TR(Str::AdminRequired),
                 desc_.appTitle, MB_ICONERROR | MB_OK);
     return 1;
 }
@@ -334,7 +341,7 @@ int ScreenSaverEngine::DoInstall() {
         DWORD err = GetLastError();
         wchar_t msg[512];
         _snwprintf_s(msg, 512, _TRUNCATE, TR(Str::InstallFailed), err);
-        MessageBoxW(nullptr, msg, desc_.appTitle, MB_ICONERROR | MB_OK);
+        ForegroundMessageBox(msg, desc_.appTitle, MB_ICONERROR | MB_OK);
         return 1;
     }
 
@@ -357,7 +364,7 @@ int ScreenSaverEngine::DoInstall() {
     if (!silent_) {
         wchar_t msg[512];
         _snwprintf_s(msg, 512, _TRUNCATE, TR(Str::InstallSuccess), desc_.appTitle);
-        MessageBoxW(nullptr, msg, desc_.appTitle, MB_ICONINFORMATION | MB_OK);
+        ForegroundMessageBox(msg, desc_.appTitle, MB_ICONINFORMATION | MB_OK);
 
         ShellExecuteW(nullptr, L"open", L"control.exe",
             L"desk.cpl,,@ScreenSaver", nullptr, SW_SHOWNORMAL);
@@ -378,7 +385,7 @@ int ScreenSaverEngine::DoUninstall() {
     if (!silent_) {
         wchar_t msg[512];
         _snwprintf_s(msg, 512, _TRUNCATE, TR(Str::UninstallConfirm), desc_.appTitle);
-        int result = MessageBoxW(nullptr, msg,
+        int result = ForegroundMessageBox(msg,
             desc_.appTitle, MB_ICONQUESTION | MB_YESNO);
         if (result != IDYES) return 0;
     }
@@ -438,7 +445,7 @@ int ScreenSaverEngine::DoUninstall() {
         if (!silent_) {
             wchar_t msg[512];
             _snwprintf_s(msg, 512, _TRUNCATE, TR(Str::UninstallDelayed), desc_.appTitle);
-            MessageBoxW(nullptr, msg, desc_.appTitle, MB_ICONINFORMATION | MB_OK);
+            ForegroundMessageBox(msg, desc_.appTitle, MB_ICONINFORMATION | MB_OK);
         }
         return 0;
     }
@@ -446,7 +453,7 @@ int ScreenSaverEngine::DoUninstall() {
     if (!silent_) {
         wchar_t msg[512];
         _snwprintf_s(msg, 512, _TRUNCATE, TR(Str::UninstallComplete), desc_.appTitle);
-        MessageBoxW(nullptr, msg, desc_.appTitle, MB_ICONINFORMATION | MB_OK);
+        ForegroundMessageBox(msg, desc_.appTitle, MB_ICONINFORMATION | MB_OK);
     }
     return 0;
 }
