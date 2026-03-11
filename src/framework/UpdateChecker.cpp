@@ -1,4 +1,5 @@
 #include "framework/UpdateChecker.h"
+#include "framework/Localization.h"
 #include <winhttp.h>
 #include <new>
 #include <cstdio>
@@ -184,7 +185,16 @@ static DWORD WINAPI UpdateThreadProc(LPVOID param) {
         UpdateInfo* info = new (std::nothrow) UpdateInfo{};
         if (info) {
             swprintf_s(info->version, L"%lu.%lu.%lu", remoteMajor, remoteMinor, remotePatch);
+            // html_url에서 저장소 경로를 추출하여 CHANGELOG 페이지로 연결
+            // 한국어: CHANGELOG.ko.md, 그 외: CHANGELOG.md
             MultiByteToWideChar(CP_UTF8, 0, htmlUrl, -1, info->url, 480);
+            wchar_t* tagPos = wcsstr(info->url, L"/releases/tag/");
+            if (tagPos) {
+                const wchar_t* changelog = (Localization::GetLang() == Lang::KO)
+                    ? L"/blob/main/CHANGELOG.ko.md"
+                    : L"/blob/main/CHANGELOG.md";
+                swprintf_s(tagPos, 512 - (tagPos - info->url), L"%s", changelog);
+            }
         }
         PostMessageW(hwnd, WM_UPDATE_RESULT, UPDATE_AVAILABLE,
             reinterpret_cast<LPARAM>(info));
