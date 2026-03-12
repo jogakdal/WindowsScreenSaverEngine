@@ -420,11 +420,10 @@ void MyContent::ReadConfigControls(HWND dlg) {
 시스템 정보 아래에 앱 고유 정보를 표시합니다:
 
 ```cpp
-void MyContent::FormatOverlayLine(wchar_t* buf, int bufSize,
-                                   double fps, double cpuUsage) {
+void MyContent::FormatOverlayLine(wchar_t* buf, int bufSize, double fps) {
     swprintf_s(buf, bufSize,
-               L"FPS: %.0f | CPU: %.0f%% | Frame: %d",
-               fps, cpuUsage, frameCount_);
+               L"FPS: %.0f | Frame: %d",
+               fps, frameCount_);
 }
 ```
 

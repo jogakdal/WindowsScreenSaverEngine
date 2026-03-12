@@ -743,8 +743,11 @@ int ScreenSaverEngine::RunScreenSaver(HINSTANCE hInst, const ScreenshotConfig* s
         if (showClock) clockOverlay.Render(surfDC, renderW, renderH);
         if (desc_.hasOverlay) {
             if (showOverlay) {
-                content_->FormatOverlayLine(dynLine, 256, fps, cpuUsage);
-                textOverlay.Render(surfDC, displayFadeAlpha, dynLine);
+                if (showContent)
+                    content_->FormatOverlayLine(dynLine, 256, fps);
+                else
+                    dynLine[0] = L'\0';
+                textOverlay.Render(surfDC, displayFadeAlpha, dynLine, cpuUsage);
             } else {
                 textOverlay.RenderHelpLine(surfDC, displayFadeAlpha);
             }
@@ -870,6 +873,31 @@ int ScreenSaverEngine::RunScreenSaver(HINSTANCE hInst, const ScreenshotConfig* s
         prevTime = currTime;
         if (dt > kMaxDtScreenSaver) dt = kMaxDtScreenSaver;
 
+        // CPU 사용률 측정 (콘텐츠 비활성 시에도 갱신)
+        QueryPerformanceCounter(&fpsCurr);
+        double cpuElapsed = static_cast<double>(fpsCurr.QuadPart - fpsLast.QuadPart) / fpsFreq.QuadPart;
+        if (cpuElapsed >= 1.0) {
+            FILETIME curIdleTime, curKernelTime, curUserTime;
+            if (GetSystemTimes(&curIdleTime, &curKernelTime, &curUserTime)) {
+                auto ToU64 = [](const FILETIME& ft) -> ULONGLONG {
+                    return (static_cast<ULONGLONG>(ft.dwHighDateTime) << 32) | ft.dwLowDateTime;
+                };
+                ULONGLONG idle = ToU64(curIdleTime) - ToU64(prevIdleTime);
+                ULONGLONG kernel = ToU64(curKernelTime) - ToU64(prevKernelTime);
+                ULONGLONG user = ToU64(curUserTime) - ToU64(prevUserTime);
+                ULONGLONG total = kernel + user;
+                cpuUsage = (total > 0) ? (1.0 - static_cast<double>(idle) / total) * 100.0 : 0.0;
+                prevIdleTime = curIdleTime;
+                prevKernelTime = curKernelTime;
+                prevUserTime = curUserTime;
+            }
+            if (!showContent) {
+                fps = 0.0;
+                frameCount = 0;
+                fpsLast = fpsCurr;
+            }
+        }
+
         // 콘텐츠 비활성 시 시계/오버레이만 갱신
         if (!showContent) {
             if (renderInProgress) {
@@ -911,29 +939,12 @@ int ScreenSaverEngine::RunScreenSaver(HINSTANCE hInst, const ScreenshotConfig* s
                 window.RequestRedraw();
             }
 
-            // FPS/CPU 측정
+            // FPS 측정 (CPU 사용률은 루프 상단에서 갱신)
             frameCount++;
-            QueryPerformanceCounter(&fpsCurr);
-            double elapsed = static_cast<double>(fpsCurr.QuadPart - fpsLast.QuadPart) / fpsFreq.QuadPart;
-            if (elapsed >= 1.0) {
-                fps = frameCount / elapsed;
+            if (cpuElapsed >= 1.0) {
+                fps = frameCount / cpuElapsed;
                 frameCount = 0;
                 fpsLast = fpsCurr;
-
-                FILETIME curIdleTime, curKernelTime, curUserTime;
-                if (GetSystemTimes(&curIdleTime, &curKernelTime, &curUserTime)) {
-                    auto ToU64 = [](const FILETIME& ft) -> ULONGLONG {
-                        return (static_cast<ULONGLONG>(ft.dwHighDateTime) << 32) | ft.dwLowDateTime;
-                    };
-                    ULONGLONG idle = ToU64(curIdleTime) - ToU64(prevIdleTime);
-                    ULONGLONG kernel = ToU64(curKernelTime) - ToU64(prevKernelTime);
-                    ULONGLONG user = ToU64(curUserTime) - ToU64(prevUserTime);
-                    ULONGLONG total = kernel + user;
-                    cpuUsage = (total > 0) ? (1.0 - static_cast<double>(idle) / total) * 100.0 : 0.0;
-                    prevIdleTime = curIdleTime;
-                    prevKernelTime = curKernelTime;
-                    prevUserTime = curUserTime;
-                }
             }
 
             // 스크린샷 저장

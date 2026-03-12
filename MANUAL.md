@@ -231,7 +231,7 @@ ScreenSaverEngine::Run()
 
 | 메서드 | 설명 |
 |--------|------|
-| `void FormatOverlayLine(wchar_t* buf, int bufSize, double fps, double cpuUsage)` | 동적 정보 라인 포맷. 시스템 정보 아래 표시. `buf`를 비워두면 해당 줄 생략. |
+| `void FormatOverlayLine(wchar_t* buf, int bufSize, double fps)` | 동적 정보 라인 포맷. 시스템 정보 아래 표시. CPU 사용률은 프레임워크가 CPU 라인에 표시. `buf`를 비워두면 해당 줄 생략. |
 
 ### 미리보기
 

@@ -20,7 +20,9 @@ public:
     // 매 프레임 오버레이 렌더링
     // fadeAlpha: 미사용 (호환성 유지)
     // dynamicLine: 콘텐츠가 제공하는 동적 정보 문자열 (1줄)
-    void Render(HDC surfDC, float fadeAlpha, const wchar_t* dynamicLine);
+    // cpuUsage: CPU 사용률 (0~100)
+    void Render(HDC surfDC, float fadeAlpha, const wchar_t* dynamicLine,
+                double cpuUsage);
 
     // F1 안내 문구만 렌더링 (오버레이 꺼져 있어도 표시)
     void RenderHelpLine(HDC surfDC, float fadeAlpha);

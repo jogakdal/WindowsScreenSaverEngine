@@ -98,9 +98,16 @@ void TextOverlay::BlendToSurface(HDC surfDC, int dstX, int dstY, int h) {
                textDC_, 0, 0, textBmpW_, h, blend);
 }
 
-void TextOverlay::Render(HDC surfDC, float fadeAlpha, const wchar_t* dynamicLine) {
+void TextOverlay::Render(HDC surfDC, float fadeAlpha, const wchar_t* dynamicLine,
+                         double cpuUsage) {
     (void)fadeAlpha;
     if (!textBits_) return;
+
+    // CPU 라인: "CPU: <이름> (N% 사용 중)"
+    wchar_t cpuLine[256];
+    wchar_t cpuSuffix[64];
+    swprintf_s(cpuSuffix, TR(Str::CpuInUse), cpuUsage);
+    swprintf_s(cpuLine, L"%s%s", cpuName_, cpuSuffix);
 
     // 수평 바운스
     LARGE_INTEGER now;
@@ -120,7 +127,7 @@ void TextOverlay::Render(HDC surfDC, float fadeAlpha, const wchar_t* dynamicLine
     auto renderLines = [&](int dx, int dy) {
         int x = kBmpPadding + dx;
         int y = kBmpPadding + dy;
-        TextOutW(textDC_, x, y, cpuName_, static_cast<int>(wcslen(cpuName_)));
+        TextOutW(textDC_, x, y, cpuLine, static_cast<int>(wcslen(cpuLine)));
         y += lineH;
         TextOutW(textDC_, x, y, sysLine3_, static_cast<int>(wcslen(sysLine3_)));
         y += lineH;

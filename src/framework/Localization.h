@@ -52,6 +52,7 @@ enum class Str {
 
     // ---- 오버레이 ----
     PressF1,
+    CpuInUse,            // %.0f (CPU 사용률 %)
 
     // ---- 시스템 정보 폴백 ----
     UnknownCPU,

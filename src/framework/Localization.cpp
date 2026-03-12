@@ -58,6 +58,7 @@ static const wchar_t* const table[kLangCount][kStrCount] = {
 
     // Overlay
     L"F1: Settings",
+    L" (%.0f%% in use)",
 
     // System info
     L"Unknown CPU",
@@ -109,6 +110,7 @@ static const wchar_t* const table[kLangCount][kStrCount] = {
 
     // Overlay
     L"F1: \xC124\xC815\xCC3D",
+    L" (%.0f%% \xC0AC\xC6A9 \xC911)",
 
     // System
     L"\xC54C \xC218 \xC5C6\xB294 CPU",
@@ -160,6 +162,7 @@ static const wchar_t* const table[kLangCount][kStrCount] = {
 
     // Overlay
     L"F1: \u8A2D\u5B9A",
+    L" (%.0f%% \u4F7F\u7528\u4E2D)",
 
     // System
     L"\u4E0D\u660E\u306ACPU",
@@ -211,6 +214,7 @@ static const wchar_t* const table[kLangCount][kStrCount] = {
 
     // Overlay
     L"F1: \u8BBE\u7F6E",
+    L" (%.0f%% \u4F7F\u7528\u4E2D)",
 
     // System
     L"\u672A\u77E5 CPU",
@@ -262,6 +266,7 @@ static const wchar_t* const table[kLangCount][kStrCount] = {
 
     // Overlay
     L"F1: Einstellungen",
+    L" (%.0f%% aktiv)",
 
     // System
     L"Unbekannte CPU",
@@ -313,6 +318,7 @@ static const wchar_t* const table[kLangCount][kStrCount] = {
 
     // Overlay
     L"F1: Param\u00E8tres",
+    L" (%.0f%% utilis\u00E9)",
 
     // System
     L"CPU inconnu",
@@ -364,6 +370,7 @@ static const wchar_t* const table[kLangCount][kStrCount] = {
 
     // Overlay
     L"F1: Configuraci\u00F3n",
+    L" (%.0f%% en uso)",
 
     // System
     L"CPU desconocida",

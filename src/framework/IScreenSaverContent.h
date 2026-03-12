@@ -180,11 +180,11 @@ public:
     // ================================================================
 
     // 동적 정보 라인 포맷 (시스템 정보 아래 표시)
-    // fps: 초당 프레임 수, cpuUsage: CPU 사용률 (%)
-    // 예: "GPU | Zoom: 10^12.3 | FPS: 30 | CPU Usage: 15% | Smooth | #42"
-    virtual void FormatOverlayLine(wchar_t* buf, int bufSize,
-                                   double fps, double cpuUsage) {
-        (void)fps; (void)cpuUsage;
+    // fps: 초당 프레임 수
+    // CPU 사용률은 프레임워크가 CPU 라인에 직접 표시
+    // 예: "GPU | Zoom: 10^12.3 | FPS: 30 | Smooth | #42"
+    virtual void FormatOverlayLine(wchar_t* buf, int bufSize, double fps) {
+        (void)fps;
         if (bufSize > 0) buf[0] = L'\0';
     }
 
