@@ -58,6 +58,10 @@ enum class Str {
     UnknownCPU,
     UnknownGPU,
 
+    // ---- 제작자/후원 ----
+    AuthorInfo,          // SysLink: blog links
+    SponsorMsg,          // plain text
+
     COUNT
 };
 

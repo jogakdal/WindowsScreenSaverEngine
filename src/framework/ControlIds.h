@@ -26,3 +26,11 @@
 
 // 버전 표시
 #define IDC_VERSION_LABEL   1012
+
+// TaskDialog 스타일 헤더/구분선
+#define IDC_HEADER_TITLE    1030
+#define IDC_HEADER_LINE     1031
+#define IDC_SEPARATOR       1032
+#define IDC_AUTHOR_INFO     1033
+#define IDC_SPONSOR_MSG     1034
+#define IDC_SPONSOR_LINKS   1035

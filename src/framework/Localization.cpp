@@ -41,9 +41,9 @@ static const wchar_t* const table[kLangCount][kStrCount] = {
     L"Rendering",
     L"Force CPU rendering (no GPU)",
     L"Display",
-    L"Show overlay (zoom / FPS)",
+    L"Show info text",
     L"Show clock",
-    L"Show animation",
+    L"Fractal rendering",
     L"Update",
     L"Check for updates",
     L"OK",
@@ -63,6 +63,10 @@ static const wchar_t* const table[kLangCount][kStrCount] = {
     // System info
     L"Unknown CPU",
     L"Unknown GPU",
+
+    // Author/Sponsor
+    L"Created by <a href=\"mailto:jogakdal@gmail.com\">Yongho Hwang</a>  (<a href=\"https://velog.io/@jogakdal\">Velog</a>  <a href=\"https://crescent-moon.tistory.com/\">Tistory</a>  <a href=\"https://blog.naver.com/jogakdal\">Naver Blog</a>)",
+    L"If you enjoy FractalSaver, please consider supporting development:",
 },
 
 // ============================================================
@@ -93,9 +97,9 @@ static const wchar_t* const table[kLangCount][kStrCount] = {
     L"\xB80C\xB354\xB9C1",
     L"CPU \xAC15\xC81C \xB80C\xB354\xB9C1 (GPU \xBBF8\xC0AC\xC6A9)",
     L"\xB514\xC2A4\xD50C\xB808\xC774",
-    L"\xC624\xBC84\xB808\xC774 \xD45C\xC2DC (\xC90C / FPS)",
+    L"\xC548\xB0B4 \xBB38\xAD6C \xD45C\xC2DC",
     L"\xC2DC\xACC4 \xD45C\xC2DC",
-    L"\xC560\xB2C8\xBA54\xC774\xC158 \xD45C\xC2DC",
+    L"\xD504\xB799\xD0C8 \xB80C\xB354\xB9C1",
     L"\xC5C5\xB370\xC774\xD2B8",
     L"\xC5C5\xB370\xC774\xD2B8 \xD655\xC778",
     L"\xD655\xC778",
@@ -115,6 +119,10 @@ static const wchar_t* const table[kLangCount][kStrCount] = {
     // System
     L"\xC54C \xC218 \xC5C6\xB294 CPU",
     L"\xC54C \xC218 \xC5C6\xB294 GPU",
+
+    // Author/Sponsor
+    L"\xC81C\xC791\xC790: <a href=\"mailto:jogakdal@gmail.com\">\xD669\xC6A9\xD638</a>  (<a href=\"https://velog.io/@jogakdal\">Velog</a>  <a href=\"https://crescent-moon.tistory.com/\">\xD2F0\xC2A4\xD1A0\xB9AC</a>  <a href=\"https://blog.naver.com/jogakdal\">\xB124\xC774\xBC84 \xBE14\xB85C\xADF8</a>)",
+    L"FractalSaver\xAC00 \xB9C8\xC74C\xC5D0 \xB4DC\xC168\xB2E4\xBA74, \xAC1C\xBC1C\xC744 \xD6C4\xC6D0\xD574 \xC8FC\xC138\xC694:",
 },
 
 // ============================================================
@@ -145,9 +153,9 @@ static const wchar_t* const table[kLangCount][kStrCount] = {
     L"\u30EC\u30F3\u30C0\u30EA\u30F3\u30B0",
     L"CPU\u30EC\u30F3\u30C0\u30EA\u30F3\u30B0\u3092\u5F37\u5236 (GPU\u306A\u3057)",
     L"\u8868\u793A",
-    L"\u30AA\u30FC\u30D0\u30FC\u30EC\u30A4\u8868\u793A (\u30BA\u30FC\u30E0 / FPS)",
+    L"\u60C5\u5831\u30C6\u30AD\u30B9\u30C8\u8868\u793A",
     L"\u6642\u8A08\u8868\u793A",
-    L"\u30A2\u30CB\u30E1\u30FC\u30B7\u30E7\u30F3\u8868\u793A",
+    L"\u30D5\u30E9\u30AF\u30BF\u30EB\u30EC\u30F3\u30C0\u30EA\u30F3\u30B0",
     L"\u30A2\u30C3\u30D7\u30C7\u30FC\u30C8",
     L"\u30A2\u30C3\u30D7\u30C7\u30FC\u30C8\u78BA\u8A8D",
     L"OK",
@@ -167,6 +175,10 @@ static const wchar_t* const table[kLangCount][kStrCount] = {
     // System
     L"\u4E0D\u660E\u306ACPU",
     L"\u4E0D\u660E\u306AGPU",
+
+    // Author/Sponsor
+    L"\u4F5C\u8005: <a href=\"mailto:jogakdal@gmail.com\">Yongho Hwang</a>  (<a href=\"https://velog.io/@jogakdal\">Velog</a>  <a href=\"https://crescent-moon.tistory.com/\">Tistory</a>  <a href=\"https://blog.naver.com/jogakdal\">Naver Blog</a>)",
+    L"FractalSaver\u3092\u6C17\u306B\u5165\u3063\u3066\u3044\u305F\u3060\u3051\u305F\u3089\u3001\u958B\u767A\u3092\u652F\u63F4\u3057\u3066\u304F\u3060\u3055\u3044:",
 },
 
 // ============================================================
@@ -197,9 +209,9 @@ static const wchar_t* const table[kLangCount][kStrCount] = {
     L"\u6E32\u67D3",
     L"\u5F3A\u5236 CPU \u6E32\u67D3 (\u4E0D\u4F7F\u7528 GPU)",
     L"\u663E\u793A",
-    L"\u663E\u793A\u53E0\u52A0\u4FE1\u606F (\u7F29\u653E / FPS)",
+    L"\u663E\u793A\u4FE1\u606F\u6587\u5B57",
     L"\u663E\u793A\u65F6\u949F",
-    L"\u663E\u793A\u52A8\u753B",
+    L"\u5206\u5F62\u6E32\u67D3",
     L"\u66F4\u65B0",
     L"\u68C0\u67E5\u66F4\u65B0",
     L"\u786E\u5B9A",
@@ -219,6 +231,10 @@ static const wchar_t* const table[kLangCount][kStrCount] = {
     // System
     L"\u672A\u77E5 CPU",
     L"\u672A\u77E5 GPU",
+
+    // Author/Sponsor
+    L"\u4F5C\u8005: <a href=\"mailto:jogakdal@gmail.com\">Yongho Hwang</a>  (<a href=\"https://velog.io/@jogakdal\">Velog</a>  <a href=\"https://crescent-moon.tistory.com/\">Tistory</a>  <a href=\"https://blog.naver.com/jogakdal\">Naver Blog</a>)",
+    L"\u5982\u679C\u60A8\u559C\u6B22 FractalSaver\uFF0C\u8BF7\u8003\u8651\u652F\u6301\u5F00\u53D1:",
 },
 
 // ============================================================
@@ -249,9 +265,9 @@ static const wchar_t* const table[kLangCount][kStrCount] = {
     L"Rendering",
     L"CPU-Rendering erzwingen (kein GPU)",
     L"Anzeige",
-    L"Overlay anzeigen (Zoom / FPS)",
+    L"Infotext anzeigen",
     L"Uhr anzeigen",
-    L"Animation anzeigen",
+    L"Fraktal-Rendering",
     L"Update",
     L"Nach Updates suchen",
     L"OK",
@@ -271,6 +287,10 @@ static const wchar_t* const table[kLangCount][kStrCount] = {
     // System
     L"Unbekannte CPU",
     L"Unbekannte GPU",
+
+    // Author/Sponsor
+    L"Erstellt von <a href=\"mailto:jogakdal@gmail.com\">Yongho Hwang</a>  (<a href=\"https://velog.io/@jogakdal\">Velog</a>  <a href=\"https://crescent-moon.tistory.com/\">Tistory</a>  <a href=\"https://blog.naver.com/jogakdal\">Naver Blog</a>)",
+    L"Wenn Ihnen FractalSaver gef\u00E4llt, unterst\u00FCtzen Sie die Entwicklung:",
 },
 
 // ============================================================
@@ -301,9 +321,9 @@ static const wchar_t* const table[kLangCount][kStrCount] = {
     L"Rendu",
     L"Forcer le rendu CPU (pas de GPU)",
     L"Affichage",
-    L"Afficher l'overlay (zoom / FPS)",
+    L"Afficher le texte d'info",
     L"Afficher l'horloge",
-    L"Afficher l'animation",
+    L"Rendu fractal",
     L"Mise \u00E0 jour",
     L"V\u00E9rifier les mises \u00E0 jour",
     L"OK",
@@ -323,6 +343,10 @@ static const wchar_t* const table[kLangCount][kStrCount] = {
     // System
     L"CPU inconnu",
     L"GPU inconnu",
+
+    // Author/Sponsor
+    L"Cr\u00E9\u00E9 par <a href=\"mailto:jogakdal@gmail.com\">Yongho Hwang</a>  (<a href=\"https://velog.io/@jogakdal\">Velog</a>  <a href=\"https://crescent-moon.tistory.com/\">Tistory</a>  <a href=\"https://blog.naver.com/jogakdal\">Naver Blog</a>)",
+    L"Si vous aimez FractalSaver, soutenez le d\u00E9veloppement :",
 },
 
 // ============================================================
@@ -353,9 +377,9 @@ static const wchar_t* const table[kLangCount][kStrCount] = {
     L"Renderizado",
     L"Forzar renderizado CPU (sin GPU)",
     L"Pantalla",
-    L"Mostrar overlay (zoom / FPS)",
+    L"Mostrar texto informativo",
     L"Mostrar reloj",
-    L"Mostrar animaci\u00F3n",
+    L"Renderizado fractal",
     L"Actualizaci\u00F3n",
     L"Buscar actualizaciones",
     L"Aceptar",
@@ -375,6 +399,10 @@ static const wchar_t* const table[kLangCount][kStrCount] = {
     // System
     L"CPU desconocida",
     L"GPU desconocida",
+
+    // Author/Sponsor
+    L"Creado por <a href=\"mailto:jogakdal@gmail.com\">Yongho Hwang</a>  (<a href=\"https://velog.io/@jogakdal\">Velog</a>  <a href=\"https://crescent-moon.tistory.com/\">Tistory</a>  <a href=\"https://blog.naver.com/jogakdal\">Naver Blog</a>)",
+    L"Si le gusta FractalSaver, considere apoyar el desarrollo:",
 },
 
 }; // end table

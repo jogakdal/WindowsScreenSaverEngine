@@ -23,6 +23,11 @@ private:
     static FrameworkSettings* s_settings;
     static IScreenSaverContent* s_content;
     static const AppDescriptor* s_desc;
+    static HFONT s_titleFont;
+    static HFONT s_boldFont;
+    static int s_headerHeightPx;
+    static int s_footerTopPx;
+    static int s_footerBottomPx;
 };
 
 } // namespace wsse
