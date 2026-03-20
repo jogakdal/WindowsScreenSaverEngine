@@ -1044,25 +1044,11 @@ int ScreenSaverEngine::RunScreenSaver(HINSTANCE hInst, const ScreenshotConfig* s
             if (sinceLast >= kInterpFrameTime) {
                 lastInterpTime = currTime;
 
+                // BlitTo가 줌 보정을 담당하므로 StretchBlt 불필요
+                // RequestRedraw만 트리거하여 BlitTo가 최신 줌 상태 반영
                 auto info = content_->GetInterpInfo();
                 double zoomRatio = prevInterpInfo.prevScale / info.currScale;
                 if (zoomRatio > 1.001) {
-                    HDC surfDC = content_->GetSurfaceDC();
-
-                    double panX = (info.currCenterX - prevInterpInfo.prevCenterX);
-                    double panY = (info.currCenterY - prevInterpInfo.prevCenterY);
-                    double pxPerUnitX = renderW / (prevInterpInfo.prevScale * info.aspectRatio);
-                    double pxPerUnitY = renderH / prevInterpInfo.prevScale;
-
-                    int srcW = static_cast<int>(renderW / zoomRatio);
-                    int srcH = static_cast<int>(renderH / zoomRatio);
-                    int srcX = (renderW - srcW) / 2 + static_cast<int>(panX * pxPerUnitX);
-                    int srcY = (renderH - srcH) / 2 + static_cast<int>(panY * pxPerUnitY);
-
-                    SetStretchBltMode(surfDC, HALFTONE);
-                    StretchBlt(surfDC, 0, 0, renderW, renderH,
-                               prevFrameDC, srcX, srcY, srcW, srcH, SRCCOPY);
-
                     displayFadeAlpha = curFade;
                     window.RequestRedraw();
                 }
