@@ -32,6 +32,8 @@ public:
 
     bool IsConfigRequested() const { return configRequested_; }
     void ClearConfigRequest() { configRequested_ = false; }
+    bool IsScreenshotRequested() const { return screenshotRequested_; }
+    void ClearScreenshotRequest() { screenshotRequested_ = false; }
     void SetConfigDialogOpen(bool open) { configDialogOpen_ = open; }
     void ResetInputTracking();
 
@@ -68,6 +70,7 @@ private:
     bool mouseInitialized_ = false;
     bool closing_ = false;
     bool configRequested_ = false;
+    bool screenshotRequested_ = false;
     bool configDialogOpen_ = false;
     DWORD startTick_ = 0;
     static constexpr DWORD kGracePeriodMs = 2000;  // 시작 후 입력 무시 기간

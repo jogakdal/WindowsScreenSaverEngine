@@ -350,6 +350,11 @@ LRESULT ScreenSaverWindow::HandleMessage(UINT msg, WPARAM wp, LPARAM lp) {
             configRequested_ = true;
             return 0;
         }
+        // F2: 현재 화면 스크린샷 저장
+        if (wp == VK_F2 && !closing_) {
+            screenshotRequested_ = true;
+            return 0;
+        }
         // ESC: 모든 모드에서 종료
         if (wp == VK_ESCAPE && !closing_) {
             closing_ = true;

@@ -109,15 +109,10 @@ static bool ExtractScreenshotArg(const wchar_t* args, ScreenshotConfig& cfg) {
         }
     }
 
-    if (cfg.folder[0] == L'\0') {
-        wchar_t exePath[MAX_PATH];
-        GetModuleFileNameW(nullptr, exePath, MAX_PATH);
-        wchar_t* lastSlash = wcsrchr(exePath, L'\\');
-        if (lastSlash) *lastSlash = L'\0';
-        _snwprintf_s(cfg.folder, MAX_PATH, _TRUNCATE, L"%s\\screenshots", exePath);
+    // 폴더 미지정 시 기본 경로는 Run()에서 F2 경로로 설정
+    if (cfg.folder[0] != L'\0') {
+        CreateDirectoryW(cfg.folder, nullptr);
     }
-
-    CreateDirectoryW(cfg.folder, nullptr);
     return true;
 }
 
@@ -662,6 +657,20 @@ int ScreenSaverEngine::Run(HINSTANCE hInst) {
     ScreenshotConfig ssCfg;
     bool hasScreenshot = ExtractScreenshotArg(args, ssCfg);
 
+    // 자동 스크린샷 기본 폴더: F2 수동 캡처와 동일 경로
+    if (hasScreenshot && ssCfg.folder[0] == L'\0') {
+        wchar_t userProfile[MAX_PATH];
+        if (GetEnvironmentVariableW(L"USERPROFILE", userProfile, MAX_PATH)) {
+            wchar_t parentDir[MAX_PATH];
+            _snwprintf_s(parentDir, MAX_PATH, _TRUNCATE,
+                         L"%s\\%s", userProfile, desc_.appTitle);
+            CreateDirectoryW(parentDir, nullptr);
+            _snwprintf_s(ssCfg.folder, MAX_PATH, _TRUNCATE,
+                         L"%s\\screenshot", parentDir);
+            CreateDirectoryW(ssCfg.folder, nullptr);
+        }
+    }
+
     // /emu 단독 사용 시 스크린세이버 모드로 전환
     if (emuMonitors_ > 0 && mode == AppMode::Configure)
         mode = AppMode::ScreenSaver;
@@ -739,7 +748,13 @@ int ScreenSaverEngine::RunScreenSaver(HINSTANCE hInst, const ScreenshotConfig* s
         // 보조 모니터에 먼저 복사 (오버레이/시계 없는 순수 프랙탈)
         window.UpdateMirrorWindows(surfDC, renderW, renderH);
 
-        // 오버레이/시계는 프라이머리에만 합성
+        // 콘텐츠 합성 결과를 surfDC에 출력 (hdc가 아닌 surfDC)
+        // BlitTo가 자체 줌 보정 + 그라데이션 합성 수행
+        if (showContent) {
+            content_->BlitTo(surfDC, renderW, renderH);
+        }
+
+        // 오버레이/시계를 surfDC 위에 합성
         if (showClock) clockOverlay.Render(surfDC, renderW, renderH);
         if (desc_.hasOverlay) {
             if (showOverlay) {
@@ -753,7 +768,8 @@ int ScreenSaverEngine::RunScreenSaver(HINSTANCE hInst, const ScreenshotConfig* s
             }
         }
 
-        content_->BlitTo(hdc, w, h);
+        // surfDC(합성 + 오버레이)를 단일 StretchBlt로 화면 출력 (깜빡임 방지)
+        content_->GetSurface().StretchBlitTo(hdc, 0, 0, w, h);
     });
 
     // 첫 렌더 시작
@@ -852,7 +868,11 @@ int ScreenSaverEngine::RunScreenSaver(HINSTANCE hInst, const ScreenshotConfig* s
                 }
                 showContent = settings_.showContent;
                 showOverlay = desc_.hasOverlay && settings_.showOverlay;
+                bool wasShowClock = showClock;
                 showClock = desc_.hasClock && settings_.showClock;
+                if (showClock && !wasShowClock) {
+                    clockOverlay.Init(renderW, renderH);
+                }
             }
 
             window.ClearConfigRequest();
@@ -934,7 +954,10 @@ int ScreenSaverEngine::RunScreenSaver(HINSTANCE hInst, const ScreenshotConfig* s
             float curFade = content_->GetFadeAlpha();
             if (curFade < 1.0f) fadeFirstRenderDone = true;
 
-            if (content_->IsUsingGPU() || wasFirstFrame || curFade < 1.0f) {
+            // 보간 지원 시: 보간 코드가 화면 갱신을 관리 (중복 호출 시 진동 발생)
+            // 보간 미지원 시: 렌더 완료마다 직접 화면 갱신 (유일한 갱신 경로)
+            if (content_->IsUsingGPU() || wasFirstFrame || curFade < 1.0f
+                || !content_->SupportsInterpolation()) {
                 displayFadeAlpha = renderStartFade;
                 window.RequestRedraw();
             }
@@ -964,6 +987,30 @@ int ScreenSaverEngine::RunScreenSaver(HINSTANCE hInst, const ScreenshotConfig* s
             if (screenshotActive && content_->GetCycleCount() >= 1) {
                 running = false;
                 break;
+            }
+        }
+
+        // F2: 수동 스크린샷 저장
+        if (window.IsScreenshotRequested()) {
+            window.ClearScreenshotRequest();
+            // %USERPROFILE%\{appTitle}\screenshot 폴더 생성
+            wchar_t userProfile[MAX_PATH];
+            if (GetEnvironmentVariableW(L"USERPROFILE", userProfile, MAX_PATH)) {
+                wchar_t parentDir[MAX_PATH];
+                _snwprintf_s(parentDir, MAX_PATH, _TRUNCATE,
+                             L"%s\\%s", userProfile, desc_.appTitle);
+                CreateDirectoryW(parentDir, nullptr);
+                wchar_t ssDir[MAX_PATH];
+                _snwprintf_s(ssDir, MAX_PATH, _TRUNCATE,
+                             L"%s\\screenshot", parentDir);
+                CreateDirectoryW(ssDir, nullptr);
+                // 콘텐츠가 파일명 결정
+                wchar_t fileName[MAX_PATH];
+                content_->FormatScreenshotName(fileName, MAX_PATH);
+                wchar_t ssPath[MAX_PATH];
+                _snwprintf_s(ssPath, MAX_PATH, _TRUNCATE,
+                             L"%s\\%s.png", ssDir, fileName);
+                content_->GetSurface().SavePNG(ssPath);
             }
         }
 

@@ -176,6 +176,21 @@ public:
     }
 
     // ================================================================
+    // 스크린샷
+    // ================================================================
+
+    // F2 수동 스크린샷 파일명 생성 (확장자 제외)
+    // 기본: 타임스탬프 기반
+    virtual void FormatScreenshotName(wchar_t* buf, int bufSize) const {
+        SYSTEMTIME st;
+        GetLocalTime(&st);
+        _snwprintf_s(buf, bufSize, _TRUNCATE,
+                     L"screenshot_%04d%02d%02d_%02d%02d%02d",
+                     st.wYear, st.wMonth, st.wDay,
+                     st.wHour, st.wMinute, st.wSecond);
+    }
+
+    // ================================================================
     // 오버레이
     // ================================================================
 
