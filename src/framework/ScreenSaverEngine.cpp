@@ -772,6 +772,9 @@ int ScreenSaverEngine::RunScreenSaver(HINSTANCE hInst, const ScreenshotConfig* s
         content_->GetSurface().StretchBlitTo(hdc, 0, 0, w, h);
     });
 
+    // 시스템 스크린세이버/절전 모드 억제 (수동 /s 실행 시 시스템 세이버가 뜨지 않도록)
+    SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED);
+
     // 첫 렌더 시작
     bool renderInProgress = false;
     float renderStartFade = 0.0f;
@@ -1088,6 +1091,9 @@ int ScreenSaverEngine::RunScreenSaver(HINSTANCE hInst, const ScreenshotConfig* s
             Sleep(1);
         content_->FinalizeRender();
     }
+
+    // 시스템 스크린세이버/절전 모드 억제 해제
+    SetThreadExecutionState(ES_CONTINUOUS);
 
     // 보간 버퍼 정리
     if (prevFrameDC) {
