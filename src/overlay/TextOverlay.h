@@ -22,7 +22,7 @@ public:
     // dynamicLine: 콘텐츠가 제공하는 동적 정보 문자열 (1줄)
     // cpuUsage: CPU 사용률 (0~100)
     void Render(HDC surfDC, float fadeAlpha, const wchar_t* dynamicLine,
-                double cpuUsage);
+                double cpuUsage, int gpuLoad = -1);
 
     // F1 안내 문구만 렌더링 (오버레이 꺼져 있어도 표시)
     void RenderHelpLine(HDC surfDC, float fadeAlpha);
@@ -43,9 +43,8 @@ private:
     int textBmpH_ = 0;
 
     // 고정 시스템 정보 문자열 (한 번만 생성)
-    wchar_t gpuName_[256]{};
-    wchar_t cpuName_[256]{};
-    wchar_t sysLine3_[128]{};
+    wchar_t cpuLine_[320]{};   // CPU: <이름> | RAM: N GB
+    wchar_t gpuLine_[320]{};   // GPU: <이름> | WxH
 
     // 비트맵에 premultiplied alpha 적용 후 AlphaBlend
     void BlendToSurface(HDC surfDC, int dstX, int dstY, int h);

@@ -43,16 +43,15 @@ void TextOverlay::Init(int renderW, int renderH, int screenW, int screenH,
         DEFAULT_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS,
         ANTIALIASED_QUALITY, FIXED_PITCH | FF_MODERN, L"Consolas");
 
-    // 시스템 정보 문자열 저장
-    swprintf_s(gpuName_, L"GPU: %s", sysInfo.GetGPUName());
-    swprintf_s(cpuName_, L"CPU: %s", sysInfo.GetCPUName());
-
+    // 시스템 정보 문자열 저장: CPU/GPU 각각 1줄로 통합
+    swprintf_s(cpuLine_, L"CPU: %s | RAM: %d GB",
+               sysInfo.GetCPUName(), sysInfo.GetRAMGB());
     if (isLite) {
-        swprintf_s(sysLine3_, L"RAM: %d GB | %d\u00D7%d (\u2192%d\u00D7%d Lite)",
-                   sysInfo.GetRAMGB(), screenW, screenH, renderW, renderH);
+        swprintf_s(gpuLine_, L"GPU: %s | %d\u00D7%d (\u2192%d\u00D7%d Lite)",
+                   sysInfo.GetGPUName(), screenW, screenH, renderW, renderH);
     } else {
-        swprintf_s(sysLine3_, L"RAM: %d GB | %d\u00D7%d",
-                   sysInfo.GetRAMGB(), renderW, renderH);
+        swprintf_s(gpuLine_, L"GPU: %s | %d\u00D7%d",
+                   sysInfo.GetGPUName(), renderW, renderH);
     }
 
     // 수평 바운스 가동 범위 계산 (고정폭 폰트 기준)
@@ -63,9 +62,8 @@ void TextOverlay::Init(int renderW, int renderH, int screenW, int screenH,
 
     int charW = charSz.cx;
     int maxChars = (std::max)({
-        static_cast<int>(wcslen(gpuName_)),
-        static_cast<int>(wcslen(cpuName_)),
-        static_cast<int>(wcslen(sysLine3_)),
+        static_cast<int>(wcslen(cpuLine_)),
+        static_cast<int>(wcslen(gpuLine_)),
         kMaxCharsEstimate
     });
     overlayRange_ = (std::max)(0, renderW - maxChars * charW - kMarginRight);
@@ -99,15 +97,37 @@ void TextOverlay::BlendToSurface(HDC surfDC, int dstX, int dstY, int h) {
 }
 
 void TextOverlay::Render(HDC surfDC, float fadeAlpha, const wchar_t* dynamicLine,
-                         double cpuUsage) {
+                         double cpuUsage, int gpuLoad) {
     (void)fadeAlpha;
     if (!textBits_) return;
 
-    // CPU 라인: "CPU: <이름> (N% 사용 중)"
-    wchar_t cpuLine[256];
+    // CPU 라인: cpuLine_ 기반, " | RAM:" 앞에 suffix 삽입
+    wchar_t cpuLine[320];
     wchar_t cpuSuffix[64];
     swprintf_s(cpuSuffix, TR(Str::CpuInUse), cpuUsage);
-    swprintf_s(cpuLine, L"%s%s", cpuName_, cpuSuffix);
+    const wchar_t* ramPart = wcsstr(cpuLine_, L" | ");
+    if (ramPart) {
+        int nameLen = static_cast<int>(ramPart - cpuLine_);
+        _snwprintf_s(cpuLine, _TRUNCATE, L"%.*s%s%s", nameLen, cpuLine_, cpuSuffix, ramPart);
+    } else {
+        _snwprintf_s(cpuLine, _TRUNCATE, L"%s%s", cpuLine_, cpuSuffix);
+    }
+
+    // GPU 라인: gpuLine_ 기반, " | " 앞에 GPU 부하 삽입
+    wchar_t gpuLine[320];
+    if (gpuLoad >= 0) {
+        wchar_t gpuSuffix[64];
+        swprintf_s(gpuSuffix, TR(Str::GpuInUse), gpuLoad);
+        const wchar_t* resPart = wcsstr(gpuLine_, L" | ");
+        if (resPart) {
+            int nameLen = static_cast<int>(resPart - gpuLine_);
+            _snwprintf_s(gpuLine, _TRUNCATE, L"%.*s%s%s", nameLen, gpuLine_, gpuSuffix, resPart);
+        } else {
+            _snwprintf_s(gpuLine, _TRUNCATE, L"%s%s", gpuLine_, gpuSuffix);
+        }
+    } else {
+        wcscpy_s(gpuLine, gpuLine_);
+    }
 
     // 수평 바운스
     LARGE_INTEGER now;
@@ -129,9 +149,7 @@ void TextOverlay::Render(HDC surfDC, float fadeAlpha, const wchar_t* dynamicLine
         int y = kBmpPadding + dy;
         TextOutW(textDC_, x, y, cpuLine, static_cast<int>(wcslen(cpuLine)));
         y += lineH;
-        TextOutW(textDC_, x, y, sysLine3_, static_cast<int>(wcslen(sysLine3_)));
-        y += lineH;
-        TextOutW(textDC_, x, y, gpuName_, static_cast<int>(wcslen(gpuName_)));
+        TextOutW(textDC_, x, y, gpuLine, static_cast<int>(wcslen(gpuLine)));
         y += lineH;
         if (dynamicLine && dynamicLine[0]) {
             TextOutW(textDC_, x, y, dynamicLine, static_cast<int>(wcslen(dynamicLine)));
@@ -141,7 +159,7 @@ void TextOverlay::Render(HDC surfDC, float fadeAlpha, const wchar_t* dynamicLine
     };
 
     // 사용 영역 높이
-    int numLines = 4; // CPU, RAM, GPU, F1
+    int numLines = 3; // CPU, GPU, F1
     if (dynamicLine && dynamicLine[0]) numLines++;
     int usedH = (std::min)(kBmpPadding * 2 + numLines * lineH, textBmpH_);
     int totalPixels = textBmpW_ * usedH;

@@ -149,6 +149,13 @@ public:
     // 레지스트리에 콘텐츠 고유 설정 저장
     virtual void SaveSettings() {}
 
+    // 콘텐츠 설정의 해시값 (설정 변경 감지용)
+    // 다이얼로그 전후 비교하여 변경 시 재시작
+    virtual uint32_t GetSettingsHash() const { return 0; }
+
+    // GPU 부하 추정치 반환 (0~999%), -1이면 미지원
+    virtual int GetGPULoad() const { return -1; }
+
     // 프레임워크 설정(forceCPU) 변경 적용
     // 반환값: true이면 렌더 파이프라인 재초기화 필요
     virtual bool ApplyFrameworkSettings(int renderW, int renderH, bool forceCPU) {

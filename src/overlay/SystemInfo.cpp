@@ -1,6 +1,7 @@
 #include "overlay/SystemInfo.h"
 #include "framework/Localization.h"
 #include <dxgi.h>
+#include <shlwapi.h>
 
 namespace wsse {
 
@@ -60,10 +61,80 @@ static int QueryRAMGB() {
     return 0;
 }
 
+static void RemoveWord(wchar_t* str, const wchar_t* word) {
+    size_t wordLen = wcslen(word);
+    wchar_t* pos = str;
+    while ((pos = StrStrIW(pos, word)) != nullptr) {
+        size_t removeLen = wordLen;
+        if (pos[removeLen] == L' ')
+            removeLen++;
+        memmove(pos, pos + removeLen,
+                (wcslen(pos + removeLen) + 1) * sizeof(wchar_t));
+    }
+    TrimWhitespace(str);
+}
+
+static void RemoveTrademarks(wchar_t* str) {
+    const wchar_t* marks[] = {
+        L"(R)", L"(TM)", L"(C)", L"\u00AE", L"\u2122"
+    };
+    for (const auto* m : marks)
+        RemoveWord(str, m);
+}
+
+static void ShortenCPUName(wchar_t* buf) {
+    RemoveTrademarks(buf);
+    RemoveWord(buf, L"Processor");
+    RemoveWord(buf, L"CPU");
+    RemoveWord(buf, L"with Radeon Graphics");
+    RemoveWord(buf, L"with Radeon Vega Graphics");
+    // 연속 공백 정리
+    wchar_t* dst = buf;
+    bool prevSpace = false;
+    for (wchar_t* src = buf; *src; src++) {
+        if (*src == L' ') {
+            if (!prevSpace)
+                *dst++ = L' ';
+            prevSpace = true;
+        } else {
+            *dst++ = *src;
+            prevSpace = false;
+        }
+    }
+    *dst = L'\0';
+    TrimWhitespace(buf);
+}
+
+static void ShortenGPUName(wchar_t* buf) {
+    RemoveTrademarks(buf);
+    RemoveWord(buf, L"NVIDIA");
+    RemoveWord(buf, L"AMD");
+    RemoveWord(buf, L"Intel");
+    RemoveWord(buf, L"Microsoft");
+    RemoveWord(buf, L"Graphics");
+    // 연속 공백 정리
+    wchar_t* dst = buf;
+    bool prevSpace = false;
+    for (wchar_t* src = buf; *src; src++) {
+        if (*src == L' ') {
+            if (!prevSpace)
+                *dst++ = L' ';
+            prevSpace = true;
+        } else {
+            *dst++ = *src;
+            prevSpace = false;
+        }
+    }
+    *dst = L'\0';
+    TrimWhitespace(buf);
+}
+
 void SystemInfo::Collect() {
     QueryGPUName(gpuName_, 256);
     QueryCPUName(cpuName_, 256);
     ramGB_ = QueryRAMGB();
+    ShortenCPUName(cpuName_);
+    ShortenGPUName(gpuName_);
 }
 
 } // namespace wsse

@@ -1,5 +1,25 @@
 # WindowsScreenSaverEngine 변경 이력
 
+## 2026-03-21: 디버그 로그 제거, 오버레이 레이아웃 변경, GPU 부하 표시, 이름 축약
+
+### 작업 내용
+- 디버그 로그 코드 완전 제거 (cstdio, g_logFile, LogInit, Log, LogClose)
+- TextOverlay 레이아웃 변경: 4줄(CPU/RAM/GPU/F1) -> 3줄(CPU+RAM/GPU+해상도/F1)
+  - cpuLine_: "CPU: <이름> | RAM: N GB", gpuLine_: "GPU: <이름> | WxH"
+  - CPU 부하를 " | RAM:" 앞에 삽입, GPU 부하를 " | " 앞에 삽입
+- GPU 부하 표시: IScreenSaverContent::GetGPULoad(), TextOverlay::Render gpuLoad 파라미터
+- Localization: GpuInUse 문자열 7개 언어 추가
+- SystemInfo: CPU/GPU 이름 축약 (상표, 브랜드명 제거)
+
+### 수정 파일
+- `src/framework/ScreenSaverEngine.cpp` - 디버그 로그 제거, gpuLoad 전달
+- `src/framework/IScreenSaverContent.h` - GetGPULoad() 가상 함수 추가
+- `src/framework/Localization.h` - GpuInUse 열거값 추가
+- `src/framework/Localization.cpp` - GpuInUse 7개 언어 번역 추가
+- `src/overlay/TextOverlay.h` - cpuLine_/gpuLine_ 멤버, Render gpuLoad 파라미터
+- `src/overlay/TextOverlay.cpp` - 3줄 레이아웃, CPU/GPU 부하 삽입 로직
+- `src/overlay/SystemInfo.cpp` - ShortenCPUName/ShortenGPUName 함수, shlwapi.h
+
 ## 2026-03-09: 보조 모니터 오버레이 분리
 
 ### 작업 내용

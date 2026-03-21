@@ -11,6 +11,12 @@ struct FrameworkSettings {
     bool showContent = true;     // 콘텐츠 애니메이션 표시
     bool showOverlay = true;     // 시스템 정보 오버레이 표시
     bool showClock = true;       // 디지털 시계 표시
+
+    bool operator==(const FrameworkSettings& o) const {
+        return forceCPU == o.forceCPU && showContent == o.showContent
+            && showOverlay == o.showOverlay && showClock == o.showClock;
+    }
+    bool operator!=(const FrameworkSettings& o) const { return !(*this == o); }
 };
 
 } // namespace wsse

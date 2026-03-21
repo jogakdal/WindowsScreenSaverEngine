@@ -758,11 +758,13 @@ int ScreenSaverEngine::RunScreenSaver(HINSTANCE hInst, const ScreenshotConfig* s
         if (showClock) clockOverlay.Render(surfDC, renderW, renderH);
         if (desc_.hasOverlay) {
             if (showOverlay) {
-                if (showContent)
+                if (showContent) {
                     content_->FormatOverlayLine(dynLine, 256, fps);
-                else
+                } else {
                     dynLine[0] = L'\0';
-                textOverlay.Render(surfDC, displayFadeAlpha, dynLine, cpuUsage);
+                }
+                textOverlay.Render(surfDC, displayFadeAlpha, dynLine,
+                                   cpuUsage, content_->GetGPULoad());
             } else {
                 textOverlay.RenderHelpLine(surfDC, displayFadeAlpha);
             }
@@ -855,6 +857,7 @@ int ScreenSaverEngine::RunScreenSaver(HINSTANCE hInst, const ScreenshotConfig* s
             window.SetConfigDialogOpen(true);
 
             FrameworkSettings oldSettings = settings_;
+            uint32_t oldHash = content_->GetSettingsHash();
             bool accepted = ConfigDialog::Show(hInst, window.GetHwnd(),
                                                desc_, settings_, content_.get());
 
@@ -863,12 +866,16 @@ int ScreenSaverEngine::RunScreenSaver(HINSTANCE hInst, const ScreenshotConfig* s
             ShowCursor(FALSE);
 
             if (accepted) {
-                if (settings_.forceCPU != oldSettings.forceCPU) {
-                    if (content_->ApplyFrameworkSettings(renderW, renderH, settings_.forceCPU)) {
-                        cpuFrameCap = !content_->IsUsingGPU();
-                        hasPrevFrame = false;
-                    }
+                uint32_t newHash = content_->GetSettingsHash();
+                bool changed = (settings_ != oldSettings) || (newHash != oldHash);
+
+                if (changed) {
+                    // 설정 변경 시 콘텐츠를 처음부터 재시작
+                    content_->Init(renderW, renderH, settings_.forceCPU);
+                    cpuFrameCap = !content_->IsUsingGPU();
+                    hasPrevFrame = false;
                 }
+
                 showContent = settings_.showContent;
                 showOverlay = desc_.hasOverlay && settings_.showOverlay;
                 bool wasShowClock = showClock;
@@ -1040,22 +1047,12 @@ int ScreenSaverEngine::RunScreenSaver(HINSTANCE hInst, const ScreenshotConfig* s
             }
         }
 
-        // 시간 보간
+        // 렌더 중 화면 갱신: BlitTo가 줌 보정 담당
+        // 항상 RequestRedraw (시계, 오버레이, 그라데이션 갱신을 위해)
+        // 줌 보정 생략 여부는 BlitTo 내부에서 zoomRatio 임계값으로 결정
         if (content_->SupportsInterpolation() && renderInProgress && hasPrevFrame && curFade >= 1.0f) {
-            QueryPerformanceCounter(&currTime);
-            double sinceLast = static_cast<double>(currTime.QuadPart - lastInterpTime.QuadPart) / freq.QuadPart;
-            if (sinceLast >= kInterpFrameTime) {
-                lastInterpTime = currTime;
-
-                // BlitTo가 줌 보정을 담당하므로 StretchBlt 불필요
-                // RequestRedraw만 트리거하여 BlitTo가 최신 줌 상태 반영
-                auto info = content_->GetInterpInfo();
-                double zoomRatio = prevInterpInfo.prevScale / info.currScale;
-                if (zoomRatio > 1.001) {
-                    displayFadeAlpha = curFade;
-                    window.RequestRedraw();
-                }
-            }
+            displayFadeAlpha = curFade;
+            window.RequestRedraw();
         }
 
         // 새 렌더 시작
