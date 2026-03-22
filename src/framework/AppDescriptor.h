@@ -46,6 +46,10 @@ struct AppDescriptor {
     // 7-세그먼트 디지털 시계
     bool hasClock = true;
 
+    // GPU 렌더링 지원 여부
+    // false이면 설정 다이얼로그에서 렌더링 섹션(CPU 강제) 숨김
+    bool hasGPU = true;
+
     // GitHub Releases API 자동 업데이트 확인
     bool hasAutoUpdate = true;
 

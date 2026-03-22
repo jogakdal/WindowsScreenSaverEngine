@@ -149,6 +149,10 @@ INT_PTR CALLBACK ConfigDialog::DlgProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
             if (ctrl) ShowWindow(ctrl, SW_HIDE);
         };
 
+        if (!s_desc->hasGPU) {
+            HideControl(IDC_GRP_RENDERING);
+            HideControl(IDC_FORCE_CPU);
+        }
         if (!s_desc->hasOverlay)
             HideControl(IDC_SHOW_OVERLAY);
         if (!s_desc->hasClock)

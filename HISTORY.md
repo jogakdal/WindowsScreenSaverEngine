@@ -1,5 +1,19 @@
 # WindowsScreenSaverEngine 변경 이력
 
+## 2026-03-22: AppDescriptor hasGPU 플래그, /cpu /gpu 인자 제거
+
+### 작업 내용
+- AppDescriptor에 hasGPU 플래그 추가 (기본값 true, 기존 호환)
+- ConfigDialog: hasGPU=false일 때 렌더링 섹션(IDC_GRP_RENDERING, IDC_FORCE_CPU) 숨김
+- ScreenSaverEngine: ParseMode에서 /cpu, /gpu 커맨드라인 인자 파싱 제거
+- ScreenSaverEngine: renderOverride 변수 및 관련 로직 제거
+- ScreenSaverEngine: 설정 변경 후 frameCap = !IsUsingGPU() 제거 (항상 frameCap = true)
+
+### 수정 파일
+- `src/framework/AppDescriptor.h` - hasGPU 플래그 추가
+- `src/framework/ConfigDialog.cpp` - hasGPU=false 처리 추가
+- `src/framework/ScreenSaverEngine.cpp` - /cpu, /gpu 파싱 제거, renderOverride 제거
+
 ## 2026-03-21: 디버그 로그 제거, 오버레이 레이아웃 변경, GPU 부하 표시, 이름 축약
 
 ### 작업 내용

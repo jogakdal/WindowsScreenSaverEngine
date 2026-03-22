@@ -118,9 +118,8 @@ static bool ExtractScreenshotArg(const wchar_t* args, ScreenshotConfig& cfg) {
 }
 
 // 실행 모드 파싱
-static AppMode ParseMode(const wchar_t* cmdLine, HWND& previewHwnd, int& renderOverride) {
+static AppMode ParseMode(const wchar_t* cmdLine, HWND& previewHwnd) {
     previewHwnd = nullptr;
-    renderOverride = -1;
 
     if (!cmdLine || !*cmdLine)
         return AppMode::Configure;
@@ -136,16 +135,6 @@ static AppMode ParseMode(const wchar_t* cmdLine, HWND& previewHwnd, int& renderO
             p++;
             wchar_t ch = static_cast<wchar_t>(towlower(*p));
 
-            if (ch == L'c' && towlower(p[1]) == L'p' && towlower(p[2]) == L'u') {
-                renderOverride = 1;
-                p += 3;
-                continue;
-            }
-            if (ch == L'g' && towlower(p[1]) == L'p' && towlower(p[2]) == L'u') {
-                renderOverride = 0;
-                p += 3;
-                continue;
-            }
             if (_wcsnicmp(p, L"lang:", 5) == 0) {
                 p += 5;
                 while (*p && *p != L' ') p++;
@@ -647,12 +636,7 @@ int ScreenSaverEngine::Run(HINSTANCE hInst) {
 
     // 스크린세이버 모드
     HWND previewHwnd = nullptr;
-    int renderOverride = -1;
-    auto mode = ParseMode(args, previewHwnd, renderOverride);
-
-    // 렌더 모드 오버라이드 적용
-    if (renderOverride == 1) settings_.forceCPU = true;
-    else if (renderOverride == 0) settings_.forceCPU = false;
+    auto mode = ParseMode(args, previewHwnd);
 
     // 스크린샷 설정
     ScreenshotConfig ssCfg;
@@ -877,7 +861,6 @@ int ScreenSaverEngine::RunScreenSaver(HINSTANCE hInst, const ScreenshotConfig* s
                 if (changed) {
                     // 설정 변경 시 콘텐츠를 처음부터 재시작
                     content_->Init(renderW, renderH, settings_.forceCPU);
-                    frameCap = !content_->IsUsingGPU();
                     hasPrevFrame = false;
                     gpuUsage.Reset();
                 }
