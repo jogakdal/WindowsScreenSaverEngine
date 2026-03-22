@@ -9,6 +9,7 @@
 #include "overlay/SystemInfo.h"
 #include "overlay/TextOverlay.h"
 #include "overlay/ClockOverlay.h"
+#include "overlay/GPUUsage.h"
 #include <windowsx.h>
 #include <shellapi.h>
 #include <shlwapi.h>
@@ -26,7 +27,7 @@ namespace wsse {
 constexpr double kMaxDtScreenSaver = 0.1;
 constexpr double kMaxDtPreview = 1.0;
 constexpr double kCPUTargetFrameTime = 1.0 / 30.0;
-constexpr double kInterpFrameTime = 1.0 / 60.0;
+constexpr double kInterpFrameTime = 1.0 / 120.0;
 
 // 미리보기 모드
 constexpr DWORD  kPreviewRenderMs = 500;
@@ -718,6 +719,9 @@ int ScreenSaverEngine::RunScreenSaver(HINSTANCE hInst, const ScreenshotConfig* s
     ClockOverlay clockOverlay;
     if (showClock) clockOverlay.Init(renderW, renderH);
 
+    // GPU 사용율 측정 (PDH API, 첫 렌더 완료 후 초기화)
+    GPUUsage gpuUsage;
+
     // FPS/CPU 측정
     double fps = 0.0;
     LARGE_INTEGER fpsFreq, fpsLast, fpsCurr;
@@ -764,7 +768,7 @@ int ScreenSaverEngine::RunScreenSaver(HINSTANCE hInst, const ScreenshotConfig* s
                     dynLine[0] = L'\0';
                 }
                 textOverlay.Render(surfDC, displayFadeAlpha, dynLine,
-                                   cpuUsage, content_->GetGPULoad());
+                                   cpuUsage, gpuUsage.GetUsagePercent());
             } else {
                 textOverlay.RenderHelpLine(surfDC, displayFadeAlpha);
             }
@@ -795,7 +799,8 @@ int ScreenSaverEngine::RunScreenSaver(HINSTANCE hInst, const ScreenshotConfig* s
 
     LARGE_INTEGER lastFrameTime;
     QueryPerformanceCounter(&lastFrameTime);
-    bool cpuFrameCap = !content_->IsUsingGPU();
+    // 프레임 캡: 렌더 완료 후 대기로 보간 축소 점프 흡수
+    bool frameCap = true;
 
     // 시간 보간: 비동기 렌더링 중 이전 프레임 확대
     HDC prevFrameDC = nullptr;
@@ -872,8 +877,9 @@ int ScreenSaverEngine::RunScreenSaver(HINSTANCE hInst, const ScreenshotConfig* s
                 if (changed) {
                     // 설정 변경 시 콘텐츠를 처음부터 재시작
                     content_->Init(renderW, renderH, settings_.forceCPU);
-                    cpuFrameCap = !content_->IsUsingGPU();
+                    frameCap = !content_->IsUsingGPU();
                     hasPrevFrame = false;
+                    gpuUsage.Reset();
                 }
 
                 showContent = settings_.showContent;
@@ -921,6 +927,7 @@ int ScreenSaverEngine::RunScreenSaver(HINSTANCE hInst, const ScreenshotConfig* s
                 prevKernelTime = curKernelTime;
                 prevUserTime = curUserTime;
             }
+            gpuUsage.Update();
             if (!showContent) {
                 fps = 0.0;
                 frameCount = 0;
@@ -959,14 +966,15 @@ int ScreenSaverEngine::RunScreenSaver(HINSTANCE hInst, const ScreenshotConfig* s
             }
 
             bool wasFirstFrame = !hasPrevFrame;
+            if (wasFirstFrame) gpuUsage.Init();
             hasPrevFrame = true;
             renderInProgress = false;
             float curFade = content_->GetFadeAlpha();
             if (curFade < 1.0f) fadeFirstRenderDone = true;
 
-            // 보간 지원 시: 보간 코드가 화면 갱신을 관리 (중복 호출 시 진동 발생)
-            // 보간 미지원 시: 렌더 완료마다 직접 화면 갱신 (유일한 갱신 경로)
-            if (content_->IsUsingGPU() || wasFirstFrame || curFade < 1.0f
+            // 보간 지원 시: 보간 타이머가 일정 간격으로 화면 갱신 (일정한 줌 속도)
+            // 렌더 완료 시 추가 RequestRedraw는 불규칙한 줌 변화를 유발
+            if (wasFirstFrame || curFade < 1.0f
                 || !content_->SupportsInterpolation()) {
                 displayFadeAlpha = renderStartFade;
                 window.RequestRedraw();
@@ -1047,17 +1055,21 @@ int ScreenSaverEngine::RunScreenSaver(HINSTANCE hInst, const ScreenshotConfig* s
             }
         }
 
-        // 렌더 중 화면 갱신: BlitTo가 줌 보정 담당
-        // 항상 RequestRedraw (시계, 오버레이, 그라데이션 갱신을 위해)
-        // 줌 보정 생략 여부는 BlitTo 내부에서 zoomRatio 임계값으로 결정
-        if (content_->SupportsInterpolation() && renderInProgress && hasPrevFrame && curFade >= 1.0f) {
-            displayFadeAlpha = curFade;
-            window.RequestRedraw();
+        // 화면 갱신: 일정 간격으로 RequestRedraw (렌더 중/완료 후 모두)
+        // renderInProgress 조건 제거: 렌더 완료 프레임에서도 보간 유지 (줌 일정)
+        if (content_->SupportsInterpolation() && hasPrevFrame && curFade >= 1.0f) {
+            QueryPerformanceCounter(&currTime);
+            double sinceLast = static_cast<double>(currTime.QuadPart - lastInterpTime.QuadPart) / freq.QuadPart;
+            if (sinceLast >= kInterpFrameTime) {
+                lastInterpTime = currTime;
+                displayFadeAlpha = curFade;
+                window.RequestRedraw();
+            }
         }
 
         // 새 렌더 시작
         if (!renderInProgress) {
-            if (cpuFrameCap) {
+            if (frameCap) {
                 QueryPerformanceCounter(&currTime);
                 double sinceLastFrame = static_cast<double>(currTime.QuadPart - lastFrameTime.QuadPart) / freq.QuadPart;
                 if (sinceLastFrame < kCPUTargetFrameTime) {

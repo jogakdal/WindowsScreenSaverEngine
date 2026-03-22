@@ -26,7 +26,7 @@ set LFLAGS=/nologo /LTCG
 echo [1/3] Compiling framework sources...
 
 set SOURCES_FW=Window ScreenSaverWindow PreviewWindow ConfigDialog Registry UpdateChecker Localization ScreenSaverEngine
-set SOURCES_OV=SystemInfo TextOverlay ClockOverlay
+set SOURCES_OV=SystemInfo TextOverlay ClockOverlay GPUUsage
 set SOURCES_RN=RenderSurface SegmentDisplay
 
 for %%f in (%SOURCES_FW%) do (
