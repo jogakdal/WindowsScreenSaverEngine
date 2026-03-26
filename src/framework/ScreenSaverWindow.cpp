@@ -226,7 +226,7 @@ LRESULT CALLBACK ScreenSaverWindow::MirrorWndProc(
     case WM_LBUTTONDOWN:
     case WM_RBUTTONDOWN:
     case WM_MBUTTONDOWN:
-        if (state && state->emuMode) return 0;  // 에뮬레이션: 클릭 무시
+        if (state && state->emuMode) return 0;
         if (state && GetTickCount() - state->startTick < 2000) return 0;
         PostQuitMessage(0);
         return 0;
@@ -368,6 +368,7 @@ LRESULT ScreenSaverWindow::HandleMessage(UINT msg, WPARAM wp, LPARAM lp) {
         return 0;
 
     case WM_MOUSEMOVE:
+        if (interactiveMode_) return 0;
         if (windowed_ || configDialogOpen_) return 0;
         if (GetTickCount() - startTick_ < kGracePeriodMs) return 0;
         {
@@ -378,7 +379,6 @@ LRESULT ScreenSaverWindow::HandleMessage(UINT msg, WPARAM wp, LPARAM lp) {
             } else {
                 int dx = pt.x - initMousePos_.x;
                 int dy = pt.y - initMousePos_.y;
-                // 마우스 이동 거리 5px 이상이면 종료
                 if (dx * dx + dy * dy > 25 && !closing_) {
                     closing_ = true;
                     PostQuitMessage(0);
@@ -388,7 +388,26 @@ LRESULT ScreenSaverWindow::HandleMessage(UINT msg, WPARAM wp, LPARAM lp) {
         return 0;
 
     case WM_LBUTTONDOWN:
+        if (interactiveMode_) {
+            clickX_ = GET_X_LPARAM(lp);
+            clickY_ = GET_Y_LPARAM(lp);
+            clickPending_ = true;
+            return 0;
+        }
+        // 통상 모드: 종료
+        if (windowed_ || configDialogOpen_) return 0;
+        if (GetTickCount() - startTick_ < kGracePeriodMs) return 0;
+        if (!closing_) {
+            closing_ = true;
+            PostQuitMessage(0);
+        }
+        return 0;
     case WM_RBUTTONDOWN:
+        if (interactiveMode_) {
+            exitRequested_ = true;
+            return 0;
+        }
+        // fall through
     case WM_MBUTTONDOWN:
         if (windowed_ || configDialogOpen_) return 0;
         if (GetTickCount() - startTick_ < kGracePeriodMs) return 0;
@@ -416,8 +435,8 @@ LRESULT ScreenSaverWindow::HandleMessage(UINT msg, WPARAM wp, LPARAM lp) {
         return 0;
 
     case WM_SETCURSOR:
-        if (windowed_ || configDialogOpen_) return DefWindowProcW(hwnd_, msg, wp, lp);
-        // 전체화면에서 마우스 커서 숨기기
+        if (windowed_ || configDialogOpen_ || interactiveMode_)
+            return DefWindowProcW(hwnd_, msg, wp, lp);
         SetCursor(nullptr);
         return TRUE;
 

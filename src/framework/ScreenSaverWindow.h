@@ -34,6 +34,10 @@ public:
     void ClearConfigRequest() { configRequested_ = false; }
     bool IsScreenshotRequested() const { return screenshotRequested_; }
     void ClearScreenshotRequest() { screenshotRequested_ = false; }
+    bool HasClick() const { return clickPending_; }
+    void GetClick(int& x, int& y) { x = clickX_; y = clickY_; clickPending_ = false; }
+    bool HasExitRequest() const { return exitRequested_; }
+    void SetInteractiveMode(bool on) { interactiveMode_ = on; }
     void SetConfigDialogOpen(bool open) { configDialogOpen_ = open; }
     void ResetInputTracking();
 
@@ -70,6 +74,11 @@ private:
     bool mouseInitialized_ = false;
     bool closing_ = false;
     bool configRequested_ = false;
+    bool interactiveMode_ = false;
+    bool exitRequested_ = false;
+    bool clickPending_ = false;
+    int clickX_ = 0;
+    int clickY_ = 0;
     bool screenshotRequested_ = false;
     bool configDialogOpen_ = false;
     DWORD startTick_ = 0;

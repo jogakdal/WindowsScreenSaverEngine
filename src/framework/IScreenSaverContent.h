@@ -138,6 +138,17 @@ public:
     // currScale/Center: 현재 애니메이션 상태
     virtual InterpInfo GetInterpInfo() const { return {}; }
 
+    // 인터랙티브 모드 여부 (마우스 클릭 줌 방향 변경 등)
+    // true 반환 시 마우스 이동/좌클릭으로 종료하지 않음
+    virtual bool IsInteractive() const { return false; }
+
+    // 마우스 클릭 (인터랙티브 모드에서만 호출)
+    // screenX, screenY: 화면 좌표 (0~renderW, 0~renderH)
+    virtual bool OnClick(int screenX, int screenY, int renderW, int renderH) {
+        (void)screenX; (void)screenY; (void)renderW; (void)renderH;
+        return false;
+    }
+
     // ================================================================
     // 설정
     // ================================================================

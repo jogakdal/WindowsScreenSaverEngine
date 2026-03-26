@@ -677,6 +677,11 @@ int ScreenSaverEngine::RunScreenSaver(HINSTANCE hInst, const ScreenshotConfig* s
     ScreenSaverWindow window;
     if (!window.Init(hInst, false, emuMonitors_)) return 1;
 
+    // 콘텐츠가 인터랙티브 모드를 요청하면 마우스 동작 변경
+    if (content_->IsInteractive()) {
+        window.SetInteractiveMode(true);
+    }
+
     int screenW = window.GetWidth();
     int screenH = window.GetHeight();
 
@@ -752,7 +757,7 @@ int ScreenSaverEngine::RunScreenSaver(HINSTANCE hInst, const ScreenshotConfig* s
                     dynLine[0] = L'\0';
                 }
                 textOverlay.Render(surfDC, displayFadeAlpha, dynLine,
-                                   cpuUsage, gpuUsage.GetUsagePercent());
+                                   cpuUsage, desc_.hasGPU ? gpuUsage.GetUsagePercent() : -1);
             } else {
                 textOverlay.RenderHelpLine(surfDC, displayFadeAlpha);
             }
@@ -910,7 +915,7 @@ int ScreenSaverEngine::RunScreenSaver(HINSTANCE hInst, const ScreenshotConfig* s
                 prevKernelTime = curKernelTime;
                 prevUserTime = curUserTime;
             }
-            gpuUsage.Update();
+            if (desc_.hasGPU) gpuUsage.Update();
             if (!showContent) {
                 fps = 0.0;
                 frameCount = 0;
@@ -949,7 +954,7 @@ int ScreenSaverEngine::RunScreenSaver(HINSTANCE hInst, const ScreenshotConfig* s
             }
 
             bool wasFirstFrame = !hasPrevFrame;
-            if (wasFirstFrame) gpuUsage.Init();
+            if (wasFirstFrame && desc_.hasGPU) gpuUsage.Init();
             hasPrevFrame = true;
             renderInProgress = false;
             float curFade = content_->GetFadeAlpha();
@@ -989,6 +994,20 @@ int ScreenSaverEngine::RunScreenSaver(HINSTANCE hInst, const ScreenshotConfig* s
                 running = false;
                 break;
             }
+        }
+
+        // 인터랙티브 종료 (우클릭): 콘텐츠에 종료 알림 후 종료
+        if (window.HasExitRequest()) {
+            content_->OnClick(-1, -1, renderW, renderH);
+            running = false;
+            break;
+        }
+
+        // 마우스 좌클릭: 콘텐츠에 전달
+        if (window.HasClick()) {
+            int cx, cy;
+            window.GetClick(cx, cy);
+            content_->OnClick(cx, cy, renderW, renderH);
         }
 
         // F2: 수동 스크린샷 저장
