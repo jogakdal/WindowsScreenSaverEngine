@@ -1,5 +1,20 @@
 # WindowsScreenSaverEngine 변경 이력
 
+## 2026-03-27: 인터랙티브 모드, hasGPU 기반 GPU 사용률 표시 제어
+
+### 작업 내용
+- IScreenSaverContent: IsInteractive(), OnClick() 가상 메서드 추가
+- ScreenSaverWindow: 인터랙티브 모드 마우스 클릭/우클릭 처리
+- ScreenSaverEngine: hasGPU=false일 때 GPU 사용률 측정(Init/Update)/표시 생략
+- TextOverlay: kMaxCharsEstimate 120으로 조정
+
+### 수정 파일
+- `src/framework/IScreenSaverContent.h` - IsInteractive(), OnClick() 추가
+- `src/framework/ScreenSaverEngine.cpp` - hasGPU 조건부 GPU 사용률 처리
+- `src/framework/ScreenSaverWindow.h` - interactiveMode_, clickPending_, exitRequested_
+- `src/framework/ScreenSaverWindow.cpp` - 인터랙티브 모드 마우스 처리
+- `src/overlay/TextOverlay.cpp` - kMaxCharsEstimate 조정
+
 ## 2026-03-22: AppDescriptor hasGPU 플래그, /cpu /gpu 인자 제거
 
 ### 작업 내용
