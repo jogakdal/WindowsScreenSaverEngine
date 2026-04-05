@@ -738,14 +738,14 @@ int ScreenSaverEngine::RunScreenSaver(HINSTANCE hInst, const ScreenshotConfig* s
             FillRect(surfDC, &r, static_cast<HBRUSH>(GetStockObject(BLACK_BRUSH)));
         }
 
-        // 보조 모니터에 먼저 복사 (오버레이/시계 없는 순수 프랙탈)
-        window.UpdateMirrorWindows(surfDC, renderW, renderH);
-
         // 콘텐츠 합성 결과를 surfDC에 출력 (hdc가 아닌 surfDC)
         // BlitTo가 자체 줌 보정 + 그라데이션 합성 수행
         if (showContent) {
             content_->BlitTo(surfDC, renderW, renderH);
         }
+
+        // 보조 모니터에 복사 (BlitTo 합성 완료 후, 오버레이/시계 제외)
+        window.UpdateMirrorWindows(surfDC, renderW, renderH);
 
         // 오버레이/시계를 surfDC 위에 합성
         if (showClock) clockOverlay.Render(surfDC, renderW, renderH);

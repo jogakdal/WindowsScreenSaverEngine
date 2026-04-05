@@ -49,12 +49,18 @@ protected:
     LRESULT HandleMessage(UINT msg, WPARAM wp, LPARAM lp) override;
 
 private:
-    // 보조 창 마우스 추적 상태
+    // 보조 창 상태 (마우스 추적 + 백버퍼)
     struct MirrorState {
         POINT initMousePos{};
         bool mouseInitialized = false;
         DWORD startTick = 0;
         bool emuMode = false;
+        // 깜빡임 방지 백버퍼
+        HDC backDC = nullptr;
+        HBITMAP backBmp = nullptr;
+        HGDIOBJ oldBmp = nullptr;
+        int width = 0;
+        int height = 0;
     };
 
     void OnPaint();

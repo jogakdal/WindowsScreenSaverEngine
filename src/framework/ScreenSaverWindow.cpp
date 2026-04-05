@@ -152,7 +152,7 @@ void ScreenSaverWindow::CreateMirrorWindows(HINSTANCE hInst) {
     // 미러 창 클래스 등록
     WNDCLASSEXW wc{};
     wc.cbSize = sizeof(wc);
-    wc.style = CS_HREDRAW | CS_VREDRAW;
+    wc.style = 0;
     wc.lpfnWndProc = MirrorWndProc;
     wc.hInstance = hInst;
     wc.hbrBackground = reinterpret_cast<HBRUSH>(GetStockObject(BLACK_BRUSH));
@@ -176,10 +176,24 @@ void ScreenSaverWindow::CreateMirrorWindows(HINSTANCE hInst) {
             nullptr, nullptr, hInst, nullptr);
 
         if (mirror) {
-            mirrorStates_[stateIdx].startTick = startTick_;
-            mirrorStates_[stateIdx].emuMode = emuMode_;
+            auto& st = mirrorStates_[stateIdx];
+            st.startTick = startTick_;
+            st.emuMode = emuMode_;
+            st.width = mon.width;
+            st.height = mon.height;
+
+            // 백버퍼 생성 (WM_PAINT에서 사용)
+            HDC screenDC = ::GetDC(mirror);
+            st.backDC = CreateCompatibleDC(screenDC);
+            st.backBmp = CreateCompatibleBitmap(screenDC, mon.width, mon.height);
+            st.oldBmp = SelectObject(st.backDC, st.backBmp);
+            // 초기 검정 배경
+            RECT r = {0, 0, mon.width, mon.height};
+            FillRect(st.backDC, &r, static_cast<HBRUSH>(GetStockObject(BLACK_BRUSH)));
+            ::ReleaseDC(mirror, screenDC);
+
             SetWindowLongPtrW(mirror, GWLP_USERDATA,
-                              reinterpret_cast<LONG_PTR>(&mirrorStates_[stateIdx]));
+                              reinterpret_cast<LONG_PTR>(&st));
             mirrorHwnds_.push_back(mirror);
             stateIdx++;
         }
@@ -187,6 +201,14 @@ void ScreenSaverWindow::CreateMirrorWindows(HINSTANCE hInst) {
 }
 
 void ScreenSaverWindow::DestroyMirrorWindows() {
+    for (auto& st : mirrorStates_) {
+        if (st.backDC) {
+            SelectObject(st.backDC, st.oldBmp);
+            DeleteDC(st.backDC);
+        }
+        if (st.backBmp)
+            DeleteObject(st.backBmp);
+    }
     for (HWND mirror : mirrorHwnds_) {
         if (mirror && IsWindow(mirror))
             DestroyWindow(mirror);
@@ -207,7 +229,11 @@ LRESULT CALLBACK ScreenSaverWindow::MirrorWndProc(
 
     case WM_PAINT: {
         PAINTSTRUCT ps;
-        BeginPaint(hwnd, &ps);
+        HDC hdc = BeginPaint(hwnd, &ps);
+        if (state && state->backDC) {
+            BitBlt(hdc, 0, 0, state->width, state->height,
+                   state->backDC, 0, 0, SRCCOPY);
+        }
         EndPaint(hwnd, &ps);
         return 0;
     }
@@ -270,9 +296,12 @@ void ScreenSaverWindow::UpdateMirrorWindows(
         if (i == primaryIndex_) continue;
         if (mirrorIdx >= static_cast<int>(mirrorHwnds_.size())) break;
 
+        int stateIdx = mirrorIdx;
         HWND mirror = mirrorHwnds_[mirrorIdx++];
-        HDC hdc = ::GetDC(mirror);
-        if (!hdc) continue;
+        if (stateIdx >= static_cast<int>(mirrorStates_.size())) break;
+
+        auto& st = mirrorStates_[stateIdx];
+        if (!st.backDC) continue;
 
         auto& mon = monitors_[i];
 
@@ -295,11 +324,20 @@ void ScreenSaverWindow::UpdateMirrorWindows(
             srcY = (sourceH - srcH) / 2;
         }
 
-        SetStretchBltMode(hdc, HALFTONE);
-        StretchBlt(hdc, 0, 0, mon.width, mon.height,
+        // 백버퍼에 렌더링
+        SetStretchBltMode(st.backDC, HALFTONE);
+        StretchBlt(st.backDC, 0, 0, mon.width, mon.height,
                    sourceDC, srcX, srcY, srcW, srcH, SRCCOPY);
 
-        ReleaseDC(mirror, hdc);
+        // 즉시 화면 출력 (메시지 큐 대기 없이)
+        HDC hdc = ::GetDC(mirror);
+        if (hdc) {
+            BitBlt(hdc, 0, 0, mon.width, mon.height,
+                   st.backDC, 0, 0, SRCCOPY);
+            ::ReleaseDC(mirror, hdc);
+        }
+        // 대기 중인 WM_PAINT 취소 (이미 최신 내용 출력 완료)
+        ValidateRect(mirror, nullptr);
     }
 }
 

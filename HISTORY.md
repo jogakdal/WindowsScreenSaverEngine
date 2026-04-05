@@ -1,5 +1,19 @@
 # WindowsScreenSaverEngine 변경 이력
 
+## 2026-04-05: 듀얼 모니터 미러 창 깜빡임 수정
+
+### 작업 내용
+- 미러 창 백버퍼 추가: MirrorState에 backDC/backBmp 필드, 생성/정리 로직
+- WM_PAINT 핸들러: 빈 핸들러 -> 백버퍼 BitBlt 출력
+- UpdateMirrorWindows: GetDC 직접 출력 -> 백버퍼 StretchBlt + 즉시 BitBlt + ValidateRect
+- 미러 창 클래스 스타일: CS_HREDRAW|CS_VREDRAW 제거 (불필요한 전체 무효화 방지)
+- UpdateMirrorWindows 호출 위치: BlitTo 이전 -> 이후로 이동 (비동기 렌더 중 반쯤 그려진 서피스 읽기 방지)
+
+### 수정 파일
+- `src/framework/ScreenSaverWindow.h` - MirrorState 백버퍼 필드 추가
+- `src/framework/ScreenSaverWindow.cpp` - 백버퍼 생성/정리, WM_PAINT, UpdateMirrorWindows
+- `src/framework/ScreenSaverEngine.cpp` - UpdateMirrorWindows 호출 위치 변경
+
 ## 2026-03-27: 인터랙티브 모드, hasGPU 기반 GPU 사용률 표시 제어
 
 ### 작업 내용
